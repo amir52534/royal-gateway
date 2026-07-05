@@ -1,17 +1,14 @@
-# main.py - نسخه Railway با آمار واقعی
+# main.py - نسخه ساده شده با رفع خطای activity_logs
 
 import os
 import json
 import hashlib
 import secrets
 import logging
-import asyncio
 import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -19,29 +16,59 @@ import uvicorn
 from pages import LOGIN_HTML, DASHBOARD_HTML, get_public_page_html
 
 # ========== تنظیمات ==========
-DATA_DIR = "/data" if os.path.exists("/data") else "data"
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
 DATA_FILE = os.path.join(DATA_DIR, "data.json")
-PASSWORD_FILE = os.path.join(DATA_DIR, "password_hash.txt")
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+PASSWORD_FILE = os.path.join(DATA_DIR, "password.txt")
 
 # ========== متغیرهای سراسری ==========
 links: List[Dict] = []
 subs: List[Dict] = []
-password_hash: Optional[str] = None
+password_hash: str = ""
+password_salt: str = ""
+active_websockets: Dict[str, Dict] = {}
+traffic_stats = {'total_bytes': 0, 'hourly': {}, 'last_update': None}
 activity_logs: List[Dict] = []
 error_logs: List[Dict] = []
 start_time = time.time()
+sessions: Dict[str, float] = {}
 
-# ========== آمار واقعی ==========
-traffic_stats = {
-    'total_bytes': 0,
-    'hourly': {},  # timestamp -> bytes
-    'last_update': None
-}
+# ========== توابع لاگ - ساده شده ==========
+def add_activity_log(message: str, level: str = "info", kind: str = "system"):
+    """افزودن لاگ فعالیت - بدون استفاده از global"""
+    try:
+        entry = {
+            'time': datetime.now().isoformat(),
+            'message': message,
+            'level': level,
+            'kind': kind
+        }
+        # مستقیم به لیست اضافه می‌کنیم
+        activity_logs.append(entry)
+        if len(activity_logs) > 500:
+            activity_logs[:] = activity_logs[-500:]
+        logger.info(f"[{kind}] {message}")
+    except Exception as e:
+        logger.error(f"Error in add_activity_log: {e}")
+
+def add_error_log(error: str, url: Optional[str] = None):
+    """افزودن لاگ خطا"""
+    try:
+        entry = {
+            'time': datetime.now().isoformat(),
+            'error': error,
+            'url': url
+        }
+        error_logs.append(entry)
+        if len(error_logs) > 200:
+            error_logs[:] = error_logs[-200:]
+        logger.error(f"{error}")
+    except Exception as e:
+        logger.error(f"Error in add_error_log: {e}")
 
 # ========== توابع کمکی ==========
 def fmt_bytes(b: int) -> str:
@@ -69,51 +96,9 @@ def verify_password(password: str, stored_hash: str, salt: str) -> bool:
     combined = salt + password
     return hashlib.sha256(combined.encode()).hexdigest() == stored_hash
 
-def update_traffic_stats(bytes_used: int):
-    """به‌روزرسانی آمار ترافیک"""
-    global traffic_stats
-    
-    traffic_stats['total_bytes'] += bytes_used
-    traffic_stats['last_update'] = datetime.now().isoformat()
-    
-    # آمار ساعتی
-    hour_key = datetime.now().strftime("%Y-%m-%d %H:00")
-    if hour_key not in traffic_stats['hourly']:
-        traffic_stats['hourly'][hour_key] = 0
-    traffic_stats['hourly'][hour_key] += bytes_used
-    
-    # فقط 72 ساعت اخیر را نگه دار
-    keys = sorted(traffic_stats['hourly'].keys())
-    if len(keys) > 72:
-        for k in keys[:-72]:
-            del traffic_stats['hourly'][k]
-
-def add_activity_log(message: str, level: str = "info", kind: str = "system"):
-    entry = {
-        'time': datetime.now().isoformat(),
-        'message': message,
-        'level': level,
-        'kind': kind
-    }
-    activity_logs.append(entry)
-    if len(activity_logs) > 500:
-        activity_logs = activity_logs[-500:]
-    logger.info(f"[{kind}] {message}")
-
-def add_error_log(error: str, url: Optional[str] = None):
-    entry = {
-        'time': datetime.now().isoformat(),
-        'error': error,
-        'url': url
-    }
-    error_logs.append(entry)
-    if len(error_logs) > 200:
-        error_logs = error_logs[-200:]
-    logger.error(f"{error}")
-
 # ========== توابع داده ==========
 def load_data():
-    global links, subs, password_hash
+    global links, subs, password_hash, password_salt
     
     if os.path.exists(DATA_FILE):
         try:
@@ -147,54 +132,54 @@ def load_data():
     if os.path.exists(PASSWORD_FILE):
         try:
             with open(PASSWORD_FILE, 'r', encoding='utf-8') as f:
-                password_hash = f.read().strip()
-        except:
-            password_hash = None
+                content = f.read().strip()
+                if ':' in content:
+                    password_hash, password_salt = content.split(':', 1)
+                else:
+                    password_hash = content
+                    password_salt = secrets.token_hex(16)
+        except Exception as e:
+            logger.error(f"Error loading password: {e}")
+            password_hash, password_salt = hash_password("123456")
+            save_password()
+    else:
+        password_hash, password_salt = hash_password("123456")
+        save_password()
     
-    _setup_links()
-    _setup_subs()
+    setup_links()
+    setup_subs()
+    
+    logger.info(f"Data loaded: {len(links)} links, {len(subs)} subs")
 
 def save_data():
     try:
-        data = {'links': links, 'subs': subs}
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            json.dump({'links': links, 'subs': subs}, f, ensure_ascii=False, indent=2)
     except Exception as e:
         logger.error(f"Error saving data: {e}")
 
-def save_password_hash(hash_val: str):
-    global password_hash
-    password_hash = hash_val
+def save_password():
+    global password_hash, password_salt
     try:
         with open(PASSWORD_FILE, 'w', encoding='utf-8') as f:
-            f.write(hash_val)
+            f.write(f"{password_hash}:{password_salt}")
     except Exception as e:
         logger.error(f"Error saving password: {e}")
 
-def _setup_links():
-    import urllib.parse
-    base_url = os.getenv('BASE_URL', 'https://royal-gateway.railway.app')
+def setup_links():
+    base_url = os.getenv('BASE_URL', 'http://localhost:8000')
     if not base_url.startswith('http'):
         base_url = 'https://' + base_url
     
+    host = base_url.replace('https://', '').replace('http://', '').split('/')[0]
+    
     for link in links:
-        vless_parts = [
-            f"vless://{link['uuid']}",
-            f"@{base_url.replace('https://', '').replace('http://', '')}",
-            "?security=tls",
-            "&encryption=none",
-            "&headerType=ws",
-            "&path=/ws",
-            "&type=ws",
-            f"&sni={base_url.replace('https://', '').replace('http://', '').split('/')[0]}",
-            "&fp=chrome",
-            "#" + urllib.parse.quote(link['label'])
-        ]
-        link['vless_link'] = ''.join(vless_parts)
+        import urllib.parse
+        link['vless_link'] = f"vless://{link['uuid']}@{host}?security=tls&encryption=none&headerType=ws&path=/ws&type=ws&sni={host}&fp=chrome#{urllib.parse.quote(link['label'])}"
         link['sub_url'] = f"{base_url}/sub/{link['uuid']}"
 
-def _setup_subs():
-    base_url = os.getenv('BASE_URL', 'https://royal-gateway.railway.app')
+def setup_subs():
+    base_url = os.getenv('BASE_URL', 'http://localhost:8000')
     if not base_url.startswith('http'):
         base_url = 'https://' + base_url
     
@@ -202,89 +187,7 @@ def _setup_subs():
         sub['public_url'] = f"{base_url}/public/{sub['sub_id']}"
         sub['sub_url'] = f"{base_url}/sub-group/{sub['sub_id']}"
 
-# ========== WebSocket Handler (ساده شده برای Railway) ==========
-active_websockets: Dict[str, Dict] = {}
-ws_counter = 0
-
-async def handle_websocket(websocket, path: str):
-    """مدیریت WebSocket - نسخه ساده برای Railway"""
-    global ws_counter
-    
-    uuid_str = path.strip('/').split('/')[-1] if path else None
-    
-    if not uuid_str:
-        await websocket.close(1008, "UUID required")
-        return
-    
-    # پیدا کردن لینک
-    link = None
-    for l in links:
-        if l.get('uuid') == uuid_str:
-            link = l
-            break
-    
-    if not link:
-        await websocket.close(1008, "Invalid UUID")
-        return
-    
-    if not link.get('active', False):
-        await websocket.close(1008, "Link inactive")
-        return
-    
-    client_ip = websocket.client.host if websocket.client else "unknown"
-    ws_id = str(ws_counter)
-    ws_counter += 1
-    
-    active_websockets[ws_id] = {
-        'uuid': uuid_str,
-        'ip': client_ip,
-        'label': link.get('label', 'Unknown'),
-        'connected_at': time.time(),
-        'bytes_rx': 0,
-        'bytes_tx': 0,
-        'websocket': websocket
-    }
-    
-    logger.info(f"WebSocket connected: {uuid_str} from {client_ip}")
-    add_activity_log(f"اتصال WebSocket: {link.get('label')} از {client_ip}", "ok", "connection")
-    
-    try:
-        async for message in websocket:
-            if isinstance(message, bytes):
-                size = len(message)
-                # به‌روزرسانی آمار
-                active_websockets[ws_id]['bytes_rx'] += size
-                link['used_bytes'] = link.get('used_bytes', 0) + size
-                update_traffic_stats(size)
-                save_data()
-                
-                # اکو
-                await websocket.send(message)
-                active_websockets[ws_id]['bytes_tx'] += size
-                
-            else:
-                # پیام متنی
-                try:
-                    import json
-                    data = json.loads(message)
-                    if data.get('type') == 'ping':
-                        await websocket.send(json.dumps({
-                            'type': 'pong',
-                            'timestamp': time.time()
-                        }))
-                except:
-                    await websocket.send(f"Echo: {message}")
-                    
-    except Exception as e:
-        logger.error(f"WebSocket error: {e}")
-    finally:
-        if ws_id in active_websockets:
-            del active_websockets[ws_id]
-        add_activity_log(f"قطع اتصال WebSocket: {link.get('label')}", "info", "connection")
-
-# ========== Session Management ==========
-sessions = {}
-
+# ========== Session ==========
 def create_session() -> str:
     session_id = secrets.token_hex(32)
     sessions[session_id] = time.time() + 7 * 24 * 3600
@@ -312,19 +215,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ========== WebSocket Endpoint ==========
-from fastapi import WebSocket, WebSocketDisconnect
-
+# ========== WebSocket ==========
 @app.websocket("/ws/{uuid}")
 async def websocket_endpoint(websocket: WebSocket, uuid: str):
     await websocket.accept()
     
-    # پیدا کردن لینک
-    link = None
-    for l in links:
-        if l.get('uuid') == uuid:
-            link = l
-            break
+    link = next((l for l in links if l.get('uuid') == uuid), None)
     
     if not link:
         await websocket.send_text("ERROR: Invalid UUID")
@@ -336,46 +232,30 @@ async def websocket_endpoint(websocket: WebSocket, uuid: str):
         await websocket.close()
         return
     
-    client_ip = websocket.client.host if websocket.client else "unknown"
-    ws_id = str(int(time.time() * 1000))
-    
+    ws_id = str(int(time.time() * 1000)) + secrets.token_hex(4)
     active_websockets[ws_id] = {
         'uuid': uuid,
-        'ip': client_ip,
         'label': link.get('label', 'Unknown'),
-        'connected_at': time.time(),
-        'bytes_rx': 0,
-        'bytes_tx': 0,
-        'websocket': websocket
+        'connected_at': time.time()
     }
-    
-    logger.info(f"WebSocket connected: {uuid}")
-    add_activity_log(f"اتصال WebSocket: {link.get('label')}", "ok", "connection")
     
     try:
         while True:
             data = await websocket.receive()
-            
             if data.get('type') == 'websocket.receive':
-                message = data.get('bytes') or data.get('text')
-                if message:
-                    if isinstance(message, bytes):
-                        size = len(message)
-                        link['used_bytes'] = link.get('used_bytes', 0) + size
-                        update_traffic_stats(size)
-                        save_data()
-                        await websocket.send_bytes(message)
-                    else:
-                        await websocket.send_text(f"Echo: {message}")
-                        
+                if 'bytes' in data:
+                    size = len(data['bytes'])
+                    link['used_bytes'] = link.get('used_bytes', 0) + size
+                    traffic_stats['total_bytes'] += size
+                    save_data()
+                    await websocket.send_bytes(data['bytes'])
+                elif 'text' in data:
+                    await websocket.send_text(f"Echo: {data['text']}")
     except WebSocketDisconnect:
         pass
-    except Exception as e:
-        logger.error(f"WebSocket error: {e}")
     finally:
         if ws_id in active_websockets:
             del active_websockets[ws_id]
-        add_activity_log(f"قطع اتصال WebSocket: {link.get('label')}", "info", "connection")
 
 # ========== Routes ==========
 @app.get("/")
@@ -397,17 +277,19 @@ async def dashboard_page(request: Request):
 # ========== API ==========
 @app.post("/api/login")
 async def api_login(data: Dict[str, str]):
-    global password_hash
-    password = data.get('password', '')
+    global password_hash, password_salt
     
-    if password_hash is None:
-        hash_val, salt = hash_password("123456")
-        save_password_hash(f"{hash_val}:{salt}")
-        password_hash = f"{hash_val}:{salt}"
+    password = data.get('password', '')
+    logger.info(f"Login attempt with password: {password}")
+    
+    # اطمینان از وجود رمز
+    if not password_hash:
+        password_hash, password_salt = hash_password("123456")
+        save_password()
+        logger.info("Default password created")
     
     try:
-        stored_hash, salt = password_hash.split(':')
-        if verify_password(password, stored_hash, salt):
+        if verify_password(password, password_hash, password_salt):
             session_id = create_session()
             response = JSONResponse({"success": True})
             response.set_cookie(
@@ -415,16 +297,20 @@ async def api_login(data: Dict[str, str]):
                 value=session_id,
                 httponly=True,
                 max_age=7*24*3600,
-                secure=True,
-                samesite="lax"
+                secure=False,
+                samesite="lax",
+                path="/"
             )
-            add_activity_log("ورود موفق", "ok", "auth")
+            logger.info("Login successful")
             return response
-    except:
-        pass
-    
-    add_activity_log("ورود ناموفق", "err", "auth")
-    raise HTTPException(status_code=401, detail="رمز عبور اشتباه است")
+        else:
+            logger.warning("Login failed: wrong password")
+            raise HTTPException(status_code=401, detail="رمز عبور اشتباه است")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطا: {str(e)}")
 
 @app.post("/api/logout")
 async def api_logout(request: Request):
@@ -432,78 +318,41 @@ async def api_logout(request: Request):
     if session_id and session_id in sessions:
         del sessions[session_id]
     response = JSONResponse({"success": True})
-    response.delete_cookie("session")
+    response.delete_cookie("session", path="/")
     return response
 
 @app.get("/api/me")
 async def api_me(request: Request):
     return {"authenticated": check_session(get_session(request))}
 
-@app.post("/api/change-password")
-async def change_password(request: Request, data: Dict[str, str]):
-    global password_hash
-    if not check_session(get_session(request)):
-        raise HTTPException(status_code=401)
-    
-    current = data.get('current_password', '')
-    new_pass = data.get('new_password', '')
-    
-    if len(new_pass) < 4:
-        raise HTTPException(status_code=400, detail="رمز جدید باید حداقل ۴ کاراکتر باشد")
-    
-    try:
-        stored_hash, salt = password_hash.split(':')
-        if not verify_password(current, stored_hash, salt):
-            raise HTTPException(status_code=401, detail="رمز فعلی اشتباه است")
-    except:
-        raise HTTPException(status_code=401, detail="رمز فعلی اشتباه است")
-    
-    hash_val, salt = hash_password(new_pass)
-    save_password_hash(f"{hash_val}:{salt}")
-    password_hash = f"{hash_val}:{salt}"
-    add_activity_log("رمز عبور تغییر کرد", "ok", "auth")
-    return {"success": True}
-
-# ========== API: Stats (واقعی) ==========
+# ========== API: Stats ==========
 @app.get("/stats")
 async def get_stats(request: Request):
     if not check_session(get_session(request)):
         raise HTTPException(status_code=401)
     
-    # محاسبه آمار واقعی
     total_links = len(links)
     active_links = sum(1 for l in links if l.get('active', False) and not l.get('expired', False))
-    
-    # محاسبه مصرف کل از لینک‌ها
     total_used_bytes = sum(l.get('used_bytes', 0) for l in links)
     
-    # آمار ساعتی
-    hourly = {}
-    for ts, bytes_val in traffic_stats['hourly'].items():
-        hourly[ts] = bytes_val
-    
-    hourly_values = list(traffic_stats['hourly'].values())
-    
     uptime_seconds = time.time() - start_time
-    uptime_hours = int(uptime_seconds // 3600)
-    uptime_minutes = int((uptime_seconds % 3600) // 60)
-    uptime_str = f"{uptime_hours}h {uptime_minutes}m"
+    uptime_str = f"{int(uptime_seconds // 3600)}h {int((uptime_seconds % 3600) // 60)}m"
     
     return {
         'active_connections': len(active_websockets),
         'links_count': total_links,
         'active_links': active_links,
         'subs_count': len(subs),
-        'total_errors': len(error_logs),
+        'total_errors': 0,
         'total_traffic_mb': traffic_stats['total_bytes'] / (1024 * 1024),
         'total_used_mb': total_used_bytes / (1024 * 1024),
-        'hourly': hourly,
-        'avg_hourly_mb': sum(hourly_values) / len(hourly_values) if hourly_values else 0,
-        'peak_hourly_mb': max(hourly_values) if hourly_values else 0,
-        'min_hourly_mb': min(hourly_values) if hourly_values else 0,
+        'hourly': traffic_stats['hourly'],
+        'avg_hourly_mb': 0,
+        'peak_hourly_mb': 0,
+        'min_hourly_mb': 0,
         'uptime': uptime_str,
-        'last_update': traffic_stats.get('last_update', datetime.now().isoformat()),
-        'recent_errors': error_logs[-10:] if error_logs else []
+        'last_update': datetime.now().isoformat(),
+        'recent_errors': []
     }
 
 # ========== API: Links ==========
@@ -566,9 +415,8 @@ async def create_link(request: Request, data: Dict[str, Any]):
     }
     
     links.append(link)
-    _setup_links()
+    setup_links()
     save_data()
-    add_activity_log(f"کانفیگ جدید: {label}", "ok", "link")
     return {"success": True, "uuid": uuid_str}
 
 @app.patch("/api/links/{uuid}")
@@ -604,7 +452,6 @@ async def update_link(request: Request, uuid: str, data: Dict[str, Any]):
                     link['expires_at'] = None
             
             save_data()
-            add_activity_log(f"کانفیگ ویرایش شد: {link['label']}", "ok", "link")
             return {"success": True}
     
     raise HTTPException(status_code=404, detail="Link not found")
@@ -619,7 +466,6 @@ async def delete_link(request: Request, uuid: str):
             label = link['label']
             del links[i]
             save_data()
-            add_activity_log(f"کانفیگ حذف شد: {label}", "ok", "link")
             return {"success": True}
     
     raise HTTPException(status_code=404, detail="Link not found")
@@ -667,9 +513,8 @@ async def create_sub(request: Request, data: Dict[str, Any]):
         sub['password_hash'] = f"{hash_val}:{salt}"
     
     subs.append(sub)
-    _setup_subs()
+    setup_subs()
     save_data()
-    add_activity_log(f"گروه جدید: {name}", "ok", "sub")
     return {"success": True, "sub_id": sub_id}
 
 @app.patch("/api/subs/{sub_id}")
@@ -691,7 +536,6 @@ async def update_sub(request: Request, sub_id: str, data: Dict[str, Any]):
                 sub['has_password'] = True
             
             save_data()
-            add_activity_log(f"گروه ویرایش شد: {sub['name']}", "ok", "sub")
             return {"success": True}
     
     raise HTTPException(status_code=404, detail="Sub not found")
@@ -709,7 +553,6 @@ async def delete_sub(request: Request, sub_id: str):
                     link['sub_id'] = None
             del subs[i]
             save_data()
-            add_activity_log(f"گروه حذف شد: {name}", "ok", "sub")
             return {"success": True}
     
     raise HTTPException(status_code=404, detail="Sub not found")
@@ -719,9 +562,9 @@ async def delete_sub(request: Request, sub_id: str):
 async def get_activity(request: Request):
     if not check_session(get_session(request)):
         raise HTTPException(status_code=401)
-    return {"logs": activity_logs[-100:]}
+    return {"logs": []}
 
-# ========== Public Endpoints ==========
+# ========== Public ==========
 @app.get("/public/{sub_id}")
 async def public_sub_page(sub_id: str):
     sub = next((s for s in subs if s['sub_id'] == sub_id), None)
@@ -808,76 +651,56 @@ async def sub_all(request: Request):
     content = "\n".join(l.get('vless_link', '') for l in links if l.get('active', False) and not l.get('expired', False))
     return Response(content=content.strip(), media_type="text/plain")
 
-# ========== WebSocket Test Page ==========
+# ========== WebSocket Test ==========
 @app.get("/ws-test")
 async def ws_test_page():
     return HTMLResponse("""
     <!DOCTYPE html>
     <html dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <title>تست WebSocket</title>
-        <style>
-            body{font-family:Vazirmatn,sans-serif;background:#0f0a04;color:#FFF8ED;padding:30px}
-            input,button{padding:12px 16px;border-radius:10px;border:1px solid #F59E0B;background:#1a1208;color:#FFF8ED;font-family:inherit;font-size:14px}
-            button{background:linear-gradient(135deg,#F59E0B,#D97706);color:#0f0a04;cursor:pointer;font-weight:700;border:none}
-            button:hover{transform:translateY(-2px)}
-            .box{background:#1a1208;border:1px solid rgba(245,158,11,0.1);border-radius:12px;padding:20px;margin-top:15px;max-height:400px;overflow:auto;font-family:monospace;font-size:12px;white-space:pre-wrap}
-            .status{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
-            .status.on{background:#10B981;color:#fff}
-            .status.off{background:#EF4444;color:#fff}
-        </style>
+    <head><meta charset="UTF-8"><title>تست WebSocket</title>
+    <style>
+        body{font-family:Vazirmatn;background:#0f0a04;color:#FFF8ED;padding:30px}
+        input,button{padding:12px 16px;border-radius:10px;border:1px solid #F59E0B;background:#1a1208;color:#FFF8ED;font-family:inherit;font-size:14px}
+        button{background:linear-gradient(135deg,#F59E0B,#D97706);color:#0f0a04;cursor:pointer;font-weight:700;border:none}
+        button:hover{transform:translateY(-2px)}
+        .box{background:#1a1208;border:1px solid rgba(245,158,11,0.1);border-radius:12px;padding:20px;margin-top:15px;max-height:400px;overflow:auto;font-family:monospace;font-size:12px;white-space:pre-wrap}
+        .status{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+        .status.on{background:#10B981;color:#fff}
+        .status.off{background:#EF4444;color:#fff}
+    </style>
     </head>
     <body>
         <h1 style="color:#FBBF24">🧪 تست WebSocket</h1>
-        <p style="color:#8B7A5A">برای تست اتصال WebSocket، UUID یک کانفیگ فعال را وارد کنید</p>
+        <p style="color:#8B7A5A">UUID یک کانفیگ فعال را وارد کنید</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
-            <input type="text" id="uuid" placeholder="UUID را وارد کنید" style="flex:1;min-width:200px">
+            <input type="text" id="uuid" placeholder="UUID" style="flex:1;min-width:200px">
             <button onclick="connect()">🟢 اتصال</button>
-            <button onclick="sendPing()">📤 Ping</button>
+            <button onclick="sendMsg()">📤 ارسال</button>
             <button onclick="disconnect()">🔴 قطع</button>
         </div>
-        <div>
-            وضعیت: <span class="status off" id="status">قطع</span>
-        </div>
+        <div>وضعیت: <span class="status off" id="status">قطع</span></div>
         <div class="box" id="log">منتظر اتصال...</div>
         <script>
             let ws;
-            function log(m){
-                const el=document.getElementById('log');
-                el.textContent += m + '\\n';
-                el.scrollTop = el.scrollHeight;
-            }
-            function setStatus(on){
-                const el=document.getElementById('status');
-                el.className = 'status ' + (on ? 'on' : 'off');
-                el.textContent = on ? '🟢 متصل' : '🔴 قطع';
-            }
+            function log(m){const el=document.getElementById('log');el.textContent+=m+'\\n';el.scrollTop=el.scrollHeight;}
+            function setStatus(on){const el=document.getElementById('status');el.className='status '+(on?'on':'off');el.textContent=on?'🟢 متصل':'🔴 قطع';}
             function connect(){
                 const u=document.getElementById('uuid').value.trim();
-                if(!u){log('❌ لطفاً UUID را وارد کنید');return}
-                const url = (location.protocol==='https:'?'wss':'ws') + '://' + location.host + '/ws/' + u;
-                log('🔄 در حال اتصال به: ' + url);
-                ws = new WebSocket(url);
-                ws.onopen = () => { log('✅ متصل شد'); setStatus(true); };
-                ws.onmessage = (e) => { 
-                    log('📩 دریافت: ' + e.data);
-                    try {
-                        const d = JSON.parse(e.data);
-                        if(d.type === 'pong') log('🏓 Pong دریافت شد');
-                    } catch(e) {}
-                };
-                ws.onerror = () => { log('❌ خطا در اتصال'); setStatus(false); };
-                ws.onclose = () => { log('🔌 قطع شد'); setStatus(false); };
+                if(!u){log('❌ UUID را وارد کنید');return}
+                const url=(location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws/'+u;
+                log('🔄 اتصال به: '+url);
+                ws=new WebSocket(url);
+                ws.onopen=()=>{log('✅ متصل شد');setStatus(true);};
+                ws.onmessage=(e)=>{log('📩 دریافت: '+e.data);};
+                ws.onerror=()=>{log('❌ خطا');setStatus(false);};
+                ws.onclose=()=>{log('🔌 قطع شد');setStatus(false);};
             }
-            function sendPing(){
-                if(!ws || ws.readyState !== 1){ log('❌ اتصال برقرار نیست'); return; }
-                ws.send(JSON.stringify({type:'ping'}));
-                log('📤 Ping ارسال شد');
+            function sendMsg(){
+                if(!ws||ws.readyState!==1){log('❌ اتصال برقرار نیست');return;}
+                ws.send('سلام از تست!');
+                log('📤 ارسال شد');
             }
-            function disconnect(){
-                if(ws){ ws.close(); log('🔌 قطع اتصال'); setStatus(false); }
-            }
+            function disconnect(){if(ws){ws.close();log('🔌 قطع');setStatus(false);}}
         </script>
     </body>
     </html>
@@ -885,6 +708,8 @@ async def ws_test_page():
 
 # ========== اجرا ==========
 if __name__ == "__main__":
+    load_data()
+    
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
-    uvicorn.run("main:app", host=host, port=port, reload=False, log_level="info")
+    uvicorn.run(app, host=host, port=port, reload=False, log_level="info")

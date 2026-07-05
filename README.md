@@ -26,7 +26,7 @@ https://youtu.be/nTq2vDmC0Ks
 ابتدا روی دکمه **Fork** کلیک کنید تا این ریپازیتوری را به حساب خود منتقل کنید:
 
 ```bash
-https://github.com/arvin341az-glitch/RVG/
+https://github.com/amir52534/royal-gateway
 ```
 
 ---

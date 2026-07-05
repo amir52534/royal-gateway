@@ -1,4 +1,4 @@
-# main.py - Royal Gateway v9.2 (یکپارچه کامل با پشتیبانی Railway)
+# main.py - Royal Gateway v9.2 (اصلاح WebSocket)
 
 import os
 import json
@@ -219,25 +219,20 @@ def save_password():
     except Exception as e:
         logger.error(f"Error saving password: {e}")
 
-# ========== دریافت BASE_URL ==========
 def get_base_url() -> str:
     """دریافت آدرس پایه - اول از محیط، سپس از Railway، سپس localhost"""
-    # 1. از متغیر محیطی BASE_URL
     base_url = os.getenv('BASE_URL')
     if base_url:
         return base_url.rstrip('/')
     
-    # 2. از Railway Public Domain
     railway_host = os.getenv('RAILWAY_PUBLIC_DOMAIN')
     if railway_host:
         return f"https://{railway_host}"
     
-    # 3. از Railway Service URL
     railway_url = os.getenv('RAILWAY_SERVICE_URL')
     if railway_url:
         return railway_url.rstrip('/')
     
-    # 4. از Hostname
     hostname = os.getenv('HOST', 'localhost')
     port = os.getenv('PORT', '8000')
     if hostname in ['0.0.0.0', '127.0.0.1', 'localhost']:
@@ -246,12 +241,10 @@ def get_base_url() -> str:
     return f"https://{hostname}"
 
 def setup_links():
-    """تنظیم لینک‌های VLESS با آدرس صحیح"""
+    """تنظیم لینک‌های VLESS با آدرس صحیح - مسیر WebSocket اصلاح شد"""
     base_url = get_base_url()
     
-    # استخراج host از آدرس
     host = base_url.replace('https://', '').replace('http://', '').split('/')[0]
-    # حذف پورت اگر 443 یا 80 باشه
     if host.endswith(':443') or host.endswith(':80'):
         host = host.rsplit(':', 1)[0]
     
@@ -259,6 +252,7 @@ def setup_links():
     
     for uuid, link in LINKS.items():
         import urllib.parse
+        # مسیر WebSocket: /ws/UUID (نه فقط /ws)
         link['vless_link'] = f"vless://{uuid}@{host}?security=tls&encryption=none&headerType=ws&path=/ws&type=ws&sni={host}&fp=chrome#{urllib.parse.quote(link['label'])}"
         link['sub_url'] = f"{base_url}/sub/{uuid}"
 
@@ -702,7 +696,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ========== WebSocket ==========
+# ========== WebSocket (پشتیبانی از هر دو مسیر) ==========
+
+@app.websocket("/ws")
+async def websocket_root(websocket: WebSocket):
+    """پشتیبانی از /ws بدون UUID - برای کلاینت‌هایی که path رو اشتباه می‌زنن"""
+    await websocket.accept()
+    await websocket.send_text("ERROR: UUID required. Use wss://your-domain/ws/YOUR_UUID")
+    await websocket.close(code=1008, reason="UUID required")
+
 @app.websocket("/ws/{uuid}")
 async def websocket_endpoint(websocket: WebSocket, uuid: str):
     await websocket_tunnel(websocket, uuid)
@@ -1003,7 +1005,7 @@ async def create_link(request: Request, data: Dict[str, Any]):
     }
     
     LINKS[uuid_str] = link
-    setup_links()  # اینجا دوباره لینک‌ها رو تنظیم می‌کنه با آدرس درست
+    setup_links()
     save_data()
     log_activity("link", f"کانفیگ جدید: {label}", "info")
     return {"success": True, "uuid": uuid_str, "vless_link": link['vless_link']}
@@ -1305,10 +1307,12 @@ async def ws_test_page():
 if __name__ == "__main__":
     load_data()
     
-    # لاگ اطلاعات آدرس
     base_url = get_base_url()
     logger.info(f"📍 Base URL: {base_url}")
-    logger.info(f"🔗 Example VLESS link: {list(LINKS.values())[0].get('vless_link', 'N/A')[:100]}...")
+    
+    if LINKS:
+        first_link = list(LINKS.values())[0]
+        logger.info(f"🔗 Example VLESS: {first_link.get('vless_link', 'N/A')[:120]}...")
     
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")

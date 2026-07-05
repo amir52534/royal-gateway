@@ -1,203 +1,213 @@
 # relay_vless.py
-# بخش VLESS Relay — جدا شده از main.py (منطق اصلی دست‌نخورده)
-# تغییر: ثبت IP واقعی کلاینت (با احتساب هدر x-forwarded-for پشت پراکسی) در connections
-
 import asyncio
-import secrets
-from datetime import datetime
+import json
+import logging
+import time
+import uuid
+from typing import Dict, Any, Optional, Set
+import websockets
+from websockets.exceptions import ConnectionClosed, WebSocketException
+import ssl
+import os
 
-from fastapi import WebSocket, WebSocketDisconnect
+# تنظیم لاگر
+logger = logging.getLogger(__name__)
 
-from main import (
-    LINKS,
-    LINKS_LOCK,
-    stats,
-    hourly_traffic,
-    connections,
-    error_logs,
-    logger,
-    is_link_allowed,
-    save_state,
-    log_activity,
-    now_ir,
-)
+# ثابت‌های داخلی
+RELAY_BUF = 65536  # بافر پیش‌فرض
+CONNECT_TIMEOUT = 10
+MAX_CONNECTIONS = 1000
 
-# ══════════════════════════════════════════════════════════════════════════════
-# VLESS Relay — بهینه‌شده برای حداکثر throughput
-# ══════════════════════════════════════════════════════════════════════════════
+# دیکشنری برای ذخیره اتصالات فعال
+active_connections: Dict[str, websockets.WebSocketServerProtocol] = {}
+connection_metadata: Dict[str, Dict[str, Any]] = {}
+connection_stats: Dict[str, Dict[str, Any]] = {}
 
-RELAY_BUF = 256 * 1024   # 256 KB buffer
+# متغیرهای جهانی که بعداً از main مقداردهی می‌شوند
+_links_data = None
+_get_link_by_uuid = None
+_update_link_usage = None
+_add_log = None
+_connection_counter = 0
 
-def _ws_client_ip(ws: WebSocket) -> str:
-    fwd = ws.headers.get("x-forwarded-for")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    real_ip = ws.headers.get("x-real-ip")
-    if real_ip:
-        return real_ip.strip()
-    return ws.client.host if ws.client else "نامشخص"
+def initialize_relay(links_data_func, get_link_func, update_usage_func, add_log_func):
+    """مقداردهی اولیه با توابع از main"""
+    global _links_data, _get_link_by_uuid, _update_link_usage, _add_log
+    _links_data = links_data_func
+    _get_link_by_uuid = get_link_func
+    _update_link_usage = update_usage_func
+    _add_log = add_log_func
 
-async def parse_vless_header(chunk: bytes):
-    if len(chunk) < 24:
-        raise ValueError("chunk too small")
-    pos = 1
-    pos += 16
-    addon_len = chunk[pos]; pos += 1 + addon_len
-    command = chunk[pos]; pos += 1
-    port = int.from_bytes(chunk[pos:pos+2], "big"); pos += 2
-    addr_type = chunk[pos]; pos += 1
-    if addr_type == 1:
-        address = ".".join(str(b) for b in chunk[pos:pos+4]); pos += 4
-    elif addr_type == 2:
-        dlen = chunk[pos]; pos += 1
-        address = chunk[pos:pos+dlen].decode("utf-8", errors="ignore"); pos += dlen
-    elif addr_type == 3:
-        ab = chunk[pos:pos+16]; pos += 16
-        address = ":".join(f"{ab[i]:02x}{ab[i+1]:02x}" for i in range(0, 16, 2))
-    else:
-        raise ValueError(f"unknown addr type: {addr_type}")
-    return command, address, port, chunk[pos:]
 
-async def check_and_use(uid: str, n: int) -> bool:
-    async with LINKS_LOCK:
-        link = LINKS.get(uid)
-        if link is None:
-            return False
-        if not is_link_allowed(link):
-            return False
-        link["used_bytes"] += n
-        stats["total_bytes"] += n
-        hourly_traffic[now_ir().strftime("%H:00")] += n
-    return True
-
-async def relay_ws_to_tcp(ws: WebSocket, writer: asyncio.StreamWriter, conn_id: str, uid: str):
-    try:
-        while True:
-            msg = await ws.receive()
-            if msg["type"] == "websocket.disconnect":
-                break
-            data = msg.get("bytes") or (msg.get("text") or "").encode()
-            if not data:
-                continue
-            if not await check_and_use(uid, len(data)):
-                await ws.close(code=1008, reason="quota/disabled/unknown")
-                break
-            stats["total_requests"] += 1
-            connections[conn_id]["bytes"] += len(data)
-            writer.write(data)
-            if writer.transport.get_write_buffer_size() > RELAY_BUF:
-                await writer.drain()
-    except (WebSocketDisconnect, Exception):
-        pass
-    finally:
-        try:
-            writer.write_eof()
-        except Exception:
-            pass
-
-async def relay_tcp_to_ws(ws: WebSocket, reader: asyncio.StreamReader, conn_id: str, uid: str):
-    first = True
-    try:
-        while True:
-            data = await reader.read(RELAY_BUF)
-            if not data:
-                break
-            if not await check_and_use(uid, len(data)):
-                await ws.close(code=1008, reason="quota/disabled/unknown")
-                break
-            connections[conn_id]["bytes"] += len(data)
-            payload = (b"\x00\x00" + data) if first else data
-            first = False
-            await ws.send_bytes(payload)
-    except Exception:
-        pass
-
-async def websocket_tunnel(ws: WebSocket, uuid: str):
-    await ws.accept()
-
-    async with LINKS_LOCK:
-        link = LINKS.get(uuid)
-
-    if not is_link_allowed(link):
-        logger.warning(f"🚫 WS rejected uuid={uuid[:8]}… (not allowed)")
-        await ws.close(code=1008, reason="not authorized")
+async def handle_websocket(websocket, path: str):
+    """مدیریت اتصال WebSocket"""
+    global _connection_counter
+    
+    # استخراج UUID از مسیر
+    uuid_str = path.strip('/').split('/')[-1] if path else None
+    
+    if not uuid_str:
+        await websocket.close(1008, "UUID required")
         return
-
-    ip = _ws_client_ip(ws)
-    conn_id = secrets.token_urlsafe(6)
-    connections[conn_id] = {
-        "uuid": uuid,
-        "ip": ip,
-        "transport": "vless-ws",
-        "connected_at": datetime.now().isoformat(),
-        "bytes": 0,
+    
+    # اعتبارسنجی UUID از طریق تابع دریافت شده از main
+    if _get_link_by_uuid is None:
+        logger.error("Relay not initialized properly")
+        await websocket.close(1011, "Server not ready")
+        return
+    
+    link = _get_link_by_uuid(uuid_str)
+    
+    if not link:
+        logger.warning(f"Invalid UUID: {uuid_str}")
+        await websocket.close(1008, "Invalid UUID")
+        return
+    
+    # بررسی فعال بودن
+    if not link.get('active', False):
+        logger.warning(f"Inactive link: {uuid_str}")
+        await websocket.close(1008, "Link inactive")
+        return
+    
+    # بررسی انقضا
+    if link.get('expired', False):
+        logger.warning(f"Expired link: {uuid_str}")
+        await websocket.close(1008, "Link expired")
+        return
+    
+    # بررسی سهمیه
+    limit_bytes = link.get('limit_bytes', 0)
+    used_bytes = link.get('used_bytes', 0)
+    
+    if limit_bytes > 0 and used_bytes >= limit_bytes:
+        logger.warning(f"Quota exceeded for: {uuid_str}")
+        await websocket.close(1008, "Quota exceeded")
+        return
+    
+    # ذخیره اتصال
+    client_ip = websocket.remote_address[0] if websocket.remote_address else "unknown"
+    conn_id = str(uuid.uuid4())[:8]
+    
+    active_connections[conn_id] = websocket
+    connection_metadata[conn_id] = {
+        'uuid': uuid_str,
+        'ip': client_ip,
+        'label': link.get('label', 'Unknown'),
+        'connected_at': time.time(),
+        'bytes_received': 0,
+        'bytes_sent': 0
     }
-    logger.info(f"✅ WS [{conn_id}] uuid={uuid[:8]}… ip={ip} total={len(connections)}")
-    log_activity("connection", f"اتصال جدید از {ip} (کانفیگ {link.get('label','?')})", "info")
-    writer = None
-
+    _connection_counter += 1
+    
+    logger.info(f"WebSocket connected: {uuid_str} from {client_ip}")
+    if _add_log:
+        _add_log(f"WebSocket connected: {link.get('label')} from {client_ip}", "ok", "connection")
+    
     try:
-        first_msg = await asyncio.wait_for(ws.receive(), timeout=15.0)
-        if first_msg["type"] == "websocket.disconnect":
-            return
-        first_chunk = first_msg.get("bytes") or (first_msg.get("text") or "").encode()
-        if not first_chunk:
-            return
-
-        command, address, port, payload = await parse_vless_header(first_chunk)
-
-        if not await check_and_use(uuid, len(first_chunk)):
-            await ws.close(code=1008, reason="quota/disabled")
-            return
-
-        stats["total_requests"] += 1
-        connections[conn_id]["bytes"] += len(first_chunk)
-        logger.info(f"➡️  [{conn_id}] → {address}:{port}")
-
-        reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(address, port),
-            timeout=10.0
-        )
-        sock = writer.transport.get_extra_info('socket')
-        if sock:
-            import socket
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-
-        if payload:
-            writer.write(payload)
-            await writer.drain()
-
-        done, pending = await asyncio.wait(
-            {
-                asyncio.create_task(relay_ws_to_tcp(ws, writer, conn_id, uuid)),
-                asyncio.create_task(relay_tcp_to_ws(ws, reader, conn_id, uuid)),
-            },
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-        for t in pending:
-            t.cancel()
-            try:
-                await t
-            except asyncio.CancelledError:
-                pass
-
-        asyncio.create_task(save_state())
-
-    except WebSocketDisconnect:
-        pass
-    except asyncio.TimeoutError:
-        stats["total_errors"] += 1
-        error_logs.append({"error": "connection timeout", "time": datetime.now().isoformat()})
-    except Exception as exc:
-        stats["total_errors"] += 1
-        error_logs.append({"error": str(exc), "time": datetime.now().isoformat()})
-        logger.error(f"WS error [{conn_id}]: {exc}")
+        # حلقه اصلی دریافت داده
+        async for message in websocket:
+            # به‌روزرسانی آمار
+            if isinstance(message, bytes):
+                size = len(message)
+                connection_metadata[conn_id]['bytes_received'] += size
+                # به‌روزرسانی مصرف در main
+                if _update_link_usage:
+                    _update_link_usage(uuid_str, size, "rx")
+                # اکو کردن پیام (برای تست)
+                await websocket.send(message)
+                connection_metadata[conn_id]['bytes_sent'] += size
+                if _update_link_usage:
+                    _update_link_usage(uuid_str, size, "tx")
+            else:
+                # پیام متنی - معمولاً برای کنترل
+                try:
+                    data = json.loads(message)
+                    if data.get('type') == 'ping':
+                        await websocket.send(json.dumps({'type': 'pong', 'timestamp': time.time()}))
+                except json.JSONDecodeError:
+                    await websocket.send(f"Echo: {message}")
+                    if _update_link_usage:
+                        _update_link_usage(uuid_str, len(message.encode()), "tx")
+    
+    except ConnectionClosed:
+        logger.info(f"Connection closed: {conn_id}")
+    except WebSocketException as e:
+        logger.error(f"WebSocket error: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
     finally:
-        if writer:
-            try:
-                writer.close()
-                await writer.wait_closed()
-            except Exception:
-                pass
-        connections.pop(conn_id, None)
-        logger.info(f"🔌 WS closed [{conn_id}] total={len(connections)}")
+        # پاک‌سازی
+        if conn_id in active_connections:
+            del active_connections[conn_id]
+        if conn_id in connection_metadata:
+            del connection_metadata[conn_id]
+        if _add_log:
+            _add_log(f"WebSocket disconnected: {link.get('label')}", "info", "connection")
+
+
+async def start_websocket_server(host: str = "0.0.0.0", port: int = 443):
+    """راه‌اندازی سرور WebSocket"""
+    try:
+        # برای Railway با TLS
+        ssl_context = None
+        # اگر فایل‌های SSL وجود دارند
+        cert_file = os.getenv('SSL_CERT_FILE')
+        key_file = os.getenv('SSL_KEY_FILE')
+        
+        if cert_file and key_file and os.path.exists(cert_file) and os.path.exists(key_file):
+            ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_context.load_cert_chain(cert_file, key_file)
+            logger.info(f"SSL enabled with cert: {cert_file}")
+        
+        server = await websockets.serve(
+            handle_websocket,
+            host,
+            port,
+            ssl=ssl_context,
+            max_size=RELAY_BUF,
+            max_queue=1024
+        )
+        
+        logger.info(f"WebSocket server started on {host}:{port}")
+        await server.wait_closed()
+        
+    except Exception as e:
+        logger.error(f"Failed to start WebSocket server: {e}")
+        raise
+
+
+def get_active_connections() -> Dict:
+    """دریافت لیست اتصالات فعال"""
+    result = {}
+    for conn_id, meta in connection_metadata.items():
+        if conn_id in active_connections:
+            result[conn_id] = {
+                'uuid': meta.get('uuid'),
+                'ip': meta.get('ip'),
+                'label': meta.get('label'),
+                'connected_at': meta.get('connected_at'),
+                'bytes_received': meta.get('bytes_received', 0),
+                'bytes_sent': meta.get('bytes_sent', 0)
+            }
+    return result
+
+
+def get_connection_count() -> int:
+    """دریافت تعداد اتصالات فعال"""
+    return len(active_connections)
+
+
+def get_connection_stats() -> Dict[str, Any]:
+    """دریافت آمار کلی اتصالات"""
+    total_rx = sum(m.get('bytes_received', 0) for m in connection_metadata.values())
+    total_tx = sum(m.get('bytes_sent', 0) for m in connection_metadata.values())
+    unique_ips = set(m.get('ip') for m in connection_metadata.values() if m.get('ip'))
+    
+    return {
+        'active': len(active_connections),
+        'total_rx': total_rx,
+        'total_tx': total_tx,
+        'total_bytes': total_rx + total_tx,
+        'unique_ips': len(unique_ips),
+        'connections': get_active_connections()
+    }

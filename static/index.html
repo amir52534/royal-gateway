@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Royal Nexus · پنل مدیریت</title>
+<style>
+/* ============================================================
+   ROYAL NEXUS — طراحی کاملاً جدید و مستقل
+   ============================================================ */
+
+:root {
+  /* هویت رنگی جدید — طلایی سلطنتی + مشکی مخملی */
+  --royal-gold: #D4A02B;
+  --royal-gold-light: #F0D060;
+  --royal-gold-dark: #A67C1E;
+  --royal-black: #0B090A;
+  --royal-black-light: #161213;
+  --royal-black-card: #1A1618;
+  --royal-cream: #F5EDE0;
+  --royal-cream-dark: #D4C8B8;
+  
+  --primary: var(--royal-gold);
+  --primary-light: var(--royal-gold-light);
+  --primary-dark: var(--royal-gold-dark);
+  --bg: var(--royal-black);
+  --bg2: var(--royal-black-light);
+  --bg3: rgba(212, 160, 43, 0.06);
+  --bg-card: var(--royal-black-card);
+  --txt: #EDE8E0;
+  --txt2: rgba(212, 160, 43, 0.5);
+  --txt3: rgba(237, 232, 224, 0.4);
+  --border: rgba(212, 160, 43, 0.08);
+  --border-light: rgba(212, 160, 43, 0.15);
+  
+  --glow-gold: 0 0 40px rgba(212, 160, 43, 0.06);
+  --glow-strong: 0 0 60px rgba(212, 160, 43, 0.12);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.5), 0 0 40px rgba(212,160,43,0.02);
+  --shadow-hover: 0 12px 48px rgba(0,0,0,0.6), 0 0 60px rgba(212,160,43,0.04);
+  
+  --gradient-primary: linear-gradient(135deg, #D4A02B, #E8C84A, #D4A02B);
+  --gradient-subtle: linear-gradient(135deg, rgba(212,160,43,0.08), rgba(212,160,43,0.02));
+  --gradient-dark: linear-gradient(135deg, #0B090A, #1A1618);
+  
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-arabic: 'Vazirmatn', 'Segoe UI', sans-serif;
+}
+
+[data-theme="light"] {
+  --bg: #F5EDE0;
+  --bg2: #FFFFFF;
+  --bg3: rgba(212, 160, 43, 0.06);
+  --bg-card: #FFFFFF;
+  --txt: #1A1618;
+  --txt2: rgba(106, 80, 20, 0.6);
+  --txt3: rgba(26, 22, 24, 0.3);
+  --border: rgba(212, 160, 43, 0.12);
+  --border-light: rgba(212, 160, 43, 0.2);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.06), 0 0 40px rgba(212,160,43,0.04);
+  --shadow-hover: 0 12px 48px rgba(0,0,0,0.08), 0 0 60px rgba(212,160,43,0.06);
+  --gradient-subtle: linear-gradient(135deg, rgba(212,160,43,0.04), rgba(212,160,43,0.01));
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-arabic);
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  transition: background 0.4s, color 0.4s;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+/* ============================================================
+   LOGIN PAGE
+   ============================================================ */
+.login-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+  background: var(--bg);
+}
+.login-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.login-bg .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(150px);
+}
+.login-bg .o1 {
+  width: 600px;
+  height: 600px;
+  background: var(--primary);
+  top: -200px;
+  right: -200px;
+  opacity: 0.04;
+}
+.login-bg .o2 {
+  width: 500px;
+  height: 500px;
+  background: var(--primary-light);
+  bottom: -150px;
+  left: -150px;
+  opacity: 0.03;
+}
+.login-bg .o3 {
+  width: 300px;
+  height: 300px;
+  background: var(--primary-dark);
+  top: 40%;
+  left: 50%;
+  opacity: 0.02;
+}
+
+.login-card {
+  position: relative;
+  z-index: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 44px 40px 38px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-card), var(--glow-gold);
+  backdrop-filter: blur(20px);
+  transition: all 0.4s;
+}
+.login-card:hover {
+  box-shadow: var(--shadow-hover), var(--glow-strong);
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.login-logo svg {
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 0 30px rgba(212, 160, 43, 0.15));
+}
+.login-title {
+  font-size: 28px;
+  font-weight: 300;
+  text-align: center;
+  letter-spacing: 8px;
+  color: var(--txt);
+  margin-bottom: 4px;
+}
+.login-title strong {
+  font-weight: 700;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+}
+.login-sub {
+  text-align: center;
+  font-size: 11px;
+  color: var(--txt2);
+  letter-spacing: 6px;
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+.login-card .f-g label {
+  display: block;
+  font-size: 10px;
+  color: var(--txt2);
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.login-card .f-g input {
+  width: 100%;
+  padding: 13px 18px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--txt);
+  font-size: 14px;
+  font-family: var(--font-arabic);
+  outline: none;
+  transition: all 0.3s;
+}
+.login-card .f-g input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(212, 160, 43, 0.05);
+}
+.login-card .f-g input::placeholder {
+  color: var(--txt3);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--gradient-primary);
+  color: var(--royal-black);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-arabic);
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.login-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #E8C84A, #D4A02B, #E8C84A);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.login-btn:hover::before { opacity: 1; }
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(212, 160, 43, 0.25);
+}
+.login-btn span {
+  position: relative;
+  z-index: 1;
+}
+.login-err {
+  color: #E84A4A;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 12px;
+  display: none;
+}
+.login-err.show { display: block; }
+.login-hint {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 11px;
+  color: var(--txt2);
+}
+.login-hint code {
+  cursor: pointer;
+  color: var(--primary);
+  background: var(--bg3);
+  padding: 3px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-family: var(--font);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.login-hint code:hover {
+  background: rgba(212, 160, 43, 0.1);
+  border-color: var(--primary);
+}
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+.app-wrap {
+  display: none;
+  min-height: 100vh;
+}
+.app-wrap.active { display: flex; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+.sidebar-brand {
+  padding: 24px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-brand svg {
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 0 20px rgba(212, 160, 43, 0.12));
+}
+.sidebar-brand-text {
+  font-size: 16px;
+  font-weight: 300;
+  letter-spacing: 4px;
+  color: var(--txt);
+}
+.sidebar-brand-text strong {
+  font-weight: 700;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+.sidebar-brand-sub {
+  font-size: 8px;
+  color: var(--txt2);
+  letter-spacing: 4px;
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  overflow-y: auto;
+}
+.sidebar-nav .nav-label {
+  font-size: 9px;
+  color: var(--txt2);
+  padding: 14px 14px 6px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--txt2);
+  transition: all 0.2s;
+  margin-bottom: 2px;
+}
+.nav-item:hover {
+  background: var(--bg3);
+  color: var(--txt);
+}
+.nav-item.active {
+  background: var(--gradient-subtle);
+  color: var(--primary);
+  border: 1px solid var(--border-light);
+}
+.nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.nav-item.logout {
+  color: #E84A4A;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  padding-top: 16px;
+}
+.nav-item.logout:hover {
+  background: rgba(232, 74, 74, 0.06);
+}
+
+.sidebar-footer {
+  padding: 16px 22px;
+  border-top: 1px solid var(--border);
+  font-size: 9px;
+  color: var(--txt2);
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-footer .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* MAIN */
+.main-area {
+  flex: 1;
+  margin-right: 250px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.topbar {
+  padding: 16px 28px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(20px);
+}
+.topbar-greet {
+  font-size: 14px;
+  color: var(--txt2);
+}
+.topbar-greet strong {
+  color: var(--txt);
+  font-weight: 600;
+}
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.topbar-actions .btn {
+  padding: 8px 18px;
+  font-size: 12px;
+}
+
+.content {
+  padding: 24px 28px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   COMPONENTS
+   ============================================================ */
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-arabic);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--gradient-primary);
+  color: var(--royal-black);
+  box-shadow: 0 4px 20px rgba(212, 160, 43, 0.12);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(212, 160, 43, 0.2);
+}
+.btn-ghost {
+  background: var(--bg3);
+  color: var(--txt);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  background: rgba(212, 160, 43, 0.06);
+  border-color: var(--border-light);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--border-light);
+}
+.btn-outline:hover {
+  background: var(--bg3);
+}
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 10px;
+  border-radius: var(--radius-sm);
+}
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+.btn-danger {
+  background: rgba(232, 74, 74, 0.08);
+  color: #E84A4A;
+  border: 1px solid rgba(232, 74, 74, 0.1);
+}
+.btn-danger:hover {
+  background: rgba(232, 74, 74, 0.12);
+}
+.btn-success {
+  background: rgba(74, 222, 128, 0.08);
+  color: #4ADE80;
+  border: 1px solid rgba(74, 222, 128, 0.1);
+}
+.btn-success:hover {
+  background: rgba(74, 222, 128, 0.12);
+}
+
+/* Cards */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s;
+}
+.panel:hover {
+  box-shadow: var(--shadow-hover);
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--txt);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-title .accent {
+  color: var(--primary);
+}
+.panel-title .gold {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 18px;
+  text-align: center;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-card);
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--border-light);
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--txt);
+  letter-spacing: 1px;
+}
+.stat-value .highlight {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-label {
+  font-size: 10px;
+  color: var(--txt2);
+  margin-top: 6px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.stat-sub {
+  font-size: 10px;
+  color: var(--txt3);
+  margin-top: 4px;
+}
+
+/* Tables */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead th {
+  text-align: right;
+  padding: 12px 14px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--txt2);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--txt);
+}
+tbody tr:hover td {
+  background: var(--bg3);
+}
+.badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.badge-active {
+  background: rgba(74, 222, 128, 0.08);
+  color: #4ADE80;
+  border: 1px solid rgba(74, 222, 128, 0.1);
+}
+.badge-expired {
+  background: rgba(232, 74, 74, 0.08);
+  color: #E84A4A;
+  border: 1px solid rgba(232, 74, 74, 0.1);
+}
+.badge-inactive {
+  background: var(--bg3);
+  color: var(--txt2);
+  border: 1px solid var(--border);
+}
+.badge-protocol {
+  background: var(--gradient-subtle);
+  color: var(--primary);
+  border: 1px solid var(--border-light);
+  font-size: 8px;
+  padding: 2px 10px;
+}
+
+/* Progress Bar */
+.progress-track {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--txt2);
+  margin-top: 2px;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--txt);
+  font-family: var(--font-arabic);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-card);
+}
+.quick-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-hover);
+  color: var(--primary);
+}
+.quick-btn .icon {
+  font-size: 18px;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 9, 10, 0.8);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+.modal.show { display: flex; }
+.modal-content {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-card), var(--glow-strong);
+  animation: modalIn 0.3s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-title .gold {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.modal-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 11px;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-size: 10px;
+  color: var(--txt2);
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--txt);
+  font-size: 13px;
+  font-family: var(--font-arabic);
+  outline: none;
+  transition: all 0.3s;
+}
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(212, 160, 43, 0.05);
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.form-row .form-group { flex: 1; }
+
+/* Toggle */
+.toggle-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.toggle-btn {
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--txt2);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-arabic);
+}
+.toggle-btn.active {
+  background: var(--gradient-primary);
+  color: var(--royal-black);
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(212, 160, 43, 0.15);
+}
+
+/* Config Code */
+.code-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 11px;
+  direction: ltr;
+  text-align: left;
+  word-break: break-all;
+  max-height: 200px;
+  overflow-y: auto;
+  color: var(--primary);
+  margin-bottom: 12px;
+  line-height: 1.8;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--txt);
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  z-index: 999;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  box-shadow: var(--shadow-card), var(--glow-gold);
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.success {
+  border-color: rgba(74, 222, 128, 0.2);
+  color: #4ADE80;
+}
+.toast.error {
+  border-color: rgba(232, 74, 74, 0.2);
+  color: #E84A4A;
+}
+
+/* Server Bars */
+.server-bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.server-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.server-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--txt2);
+}
+.server-bar-label strong {
+  color: var(--txt);
+}
+.server-bar-track {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.server-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+.server-bar-fill.gold { background: var(--gradient-primary); }
+.server-bar-fill.gold-light { background: linear-gradient(90deg, #D4A02B, #F0D060); }
+
+/* Config Grid */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.config-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-card);
+}
+.config-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--border-light);
+}
+.config-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.config-card-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.config-card-body {
+  font-size: 12px;
+  color: var(--txt2);
+}
+.config-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--txt2);
+}
+.empty-state .icon {
+  font-size: 40px;
+  opacity: 0.2;
+  display: block;
+  margin-bottom: 12px;
+}
+.empty-state p {
+  font-size: 13px;
+}
+
+/* Utilities */
+.hidden { display: none !important; }
+.text-gold { color: var(--primary); }
+.text-muted { color: var(--txt2); }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mb-12 { margin-bottom: 12px; }
+.gap-8 { gap: 8px; }
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; gap: 8px; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .server-bars { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 860px) {
+  .sidebar {
+    transform: translateX(100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: -8px 0 40px rgba(0,0,0,0.5);
+  }
+  .main-area {
+    margin-right: 0;
+  }
+  .topbar {
+    padding: 12px 16px;
+  }
+  .content {
+    padding: 14px 16px;
+  }
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
+@media (max-width: 520px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: 1fr; }
+  .server-bars { grid-template-columns: 1fr; }
+  .config-grid { grid-template-columns: 1fr; }
+  .form-row { flex-direction: column; }
+  .login-card { padding: 30px 20px; }
+  .modal-content { padding: 20px; }
+  .topbar-greet { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+   LOGIN
+   ============================================================ -->
+<div class="login-wrap" id="login-wrap" style="display:none">
+  <div class="login-bg">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="orb o3"></div>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#D4A02B"/>
+            <stop offset="50%" style="stop-color:#E8C84A"/>
+            <stop offset="100%" style="stop-color:#D4A02B"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="84" height="84" rx="18" fill="none" stroke="url(#logoGrad)" stroke-width="1.5"/>
+        <path d="M50 22 L50 78 M22 50 L78 50" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="50" cy="50" r="14" fill="none" stroke="url(#logoGrad)" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="5" fill="url(#logoGrad)"/>
+        <path d="M50 28 L58 42 L68 50 L58 58 L50 72 L42 58 L32 50 L42 42 Z" fill="url(#logoGrad)" opacity="0.12"/>
+        <!-- تاج کوچک -->
+        <path d="M34 18 L38 12 L44 18 L50 10 L56 18 L62 12 L66 18" stroke="url(#logoGrad)" stroke-width="1.5" fill="none" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="login-title"><strong>ROYAL</strong> NEXUS</div>
+    <div class="login-sub">GATEWAY MANAGEMENT</div>
+    <div class="form-group">
+      <label>نام کاربری</label>
+      <input type="text" id="login-user" value="admin" placeholder="username">
+    </div>
+    <div class="form-group">
+      <label>رمز عبور</label>
+      <input type="password" id="login-pw" value="admin" placeholder="••••••••">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()"><span>✦ ورود به پنل ✦</span></button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-hint">پیش‌فرض: <code onclick="$id('login-user').value='admin';$id('login-pw').value='admin'">admin / admin</code></div>
+  </div>
+</div>
+
+<!-- ============================================================
+   APP
+   ============================================================ -->
+<div class="app-wrap" id="app-wrap">
+  
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 100 100">
+        <defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#D4A02B"/><stop offset="100%" style="stop-color:#E8C84A"/></linearGradient></defs>
+        <rect x="10" y="10" width="80" height="80" rx="16" fill="none" stroke="url(#sg)" stroke-width="1.5"/>
+        <path d="M50 24 L50 76 M24 50 L76 50" stroke="url(#sg)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="50" cy="50" r="10" fill="none" stroke="url(#sg)" stroke-width="1.2"/>
+        <circle cx="50" cy="50" r="3.5" fill="url(#sg)"/>
+      </svg>
+      <div>
+        <div class="sidebar-brand-text"><strong>ROYAL</strong> NEXUS</div>
+        <div class="sidebar-brand-sub">MANAGEMENT PANEL</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">داشبورد</div>
+      <div class="nav-item active" onclick="switchTab('dashboard',this)">
+        <span class="nav-icon">◆</span> نمای کلی
+      </div>
+      <div class="nav-label">مدیریت</div>
+      <div class="nav-item" onclick="switchTab('users',this)">
+        <span class="nav-icon">◈</span> کاربران
+      </div>
+      <div class="nav-item" onclick="switchTab('spider-ip',this)">
+        <span class="nav-icon">◇</span> اسکنر IP
+      </div>
+      <div class="nav-label">تنظیمات</div>
+      <div class="nav-item" onclick="switchTab('tools',this)">
+        <span class="nav-icon">◊</span> ابزارها
+      </div>
+      <div class="nav-item" onclick="switchTab('settings',this)">
+        <span class="nav-icon">◈</span> تنظیمات
+      </div>
+      <div class="nav-item logout" onclick="doLogout()">
+        <span class="nav-icon">✕</span> خروج
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="dot"></span> NEXUS v1.0 · active
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-greet" id="grt"></div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openCreateUser()">✦ کاربر جدید</button>
+        <button class="btn btn-ghost" onclick="toggleSidebar()" style="display:flex;padding:8px 12px;font-size:16px;">☰</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div id="tab-dashboard" class="tab-content">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value"><span class="highlight" id="s1">0</span></div><div class="stat-label">کاربران فعال</div><div class="stat-sub" id="s1b">کل: ۰</div></div>
+          <div class="stat-card"><div class="stat-value"><span class="highlight" id="s2">0</span></div><div class="stat-label">کل کاربران</div><div class="stat-sub" id="s2b">فعال: ۰</div></div>
+          <div class="stat-card"><div class="stat-value"><span class="highlight" id="s3">0</span> <small style="font-size:14px;font-weight:300;">GB</small></div><div class="stat-label">ترافیک کل</div><div class="stat-sub" id="s3b">اتصالات: ۰</div></div>
+          <div class="stat-card"><div class="stat-value"><span class="highlight" id="s4">--</span></div><div class="stat-label">مدت فعالیت</div><div class="stat-sub" id="s4b">وضعیت: سالم</div></div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="quick-btn" onclick="openCreateUser()"><span class="icon">✦</span> افزودن کاربر</button>
+          <button class="quick-btn" onclick="switchTab('spider-ip',document.querySelector('.nav-item[onclick*=\\'spider-ip\\']'))"><span class="icon">◇</span> اسکن IP</button>
+          <button class="quick-btn" onclick="switchTab('tools',document.querySelector('.nav-item[onclick*=\\'tools\\']'))"><span class="icon">◊</span> ابزارها</button>
+          <button class="quick-btn"><span class="icon">⌘</span> بکاپ</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◈</span> وضعیت سرور</div>
+          </div>
+          <div class="server-bars">
+            <div class="server-bar-item">
+              <div class="server-bar-label"><span>CPU</span><strong id="srv-cpu">--</strong></div>
+              <div class="server-bar-track"><div class="server-bar-fill gold" id="srv-cpu-bar" style="width:0%"></div></div>
+            </div>
+            <div class="server-bar-item">
+              <div class="server-bar-label"><span>RAM</span><strong id="srv-ram">--</strong></div>
+              <div class="server-bar-track"><div class="server-bar-fill gold-light" id="srv-ram-bar" style="width:0%"></div></div>
+            </div>
+            <div class="server-bar-item">
+              <div class="server-bar-label"><span>Disk</span><strong id="srv-disk">--</strong></div>
+              <div class="server-bar-track"><div class="server-bar-fill gold" id="srv-disk-bar" style="width:0%"></div></div>
+            </div>
+            <div class="server-bar-item">
+              <div class="server-bar-label"><span>Network</span><strong id="srv-net">--</strong></div>
+              <div class="server-bar-track"><div class="server-bar-fill gold-light" id="srv-net-bar" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:10px;color:var(--txt2)">
+            <div>Sent: <strong style="color:var(--txt)" id="srv-sent">--</strong></div>
+            <div>Recv: <strong style="color:var(--txt)" id="srv-recv">--</strong></div>
+            <div>Uptime: <strong style="color:var(--txt)" id="srv-up">--</strong></div>
+            <div>Connections: <strong style="color:var(--txt)" id="srv-conn">--</strong></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◈</span> کاربران اخیر</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>نام</th><th>پروتکل</th><th>مصرف</th><th>اعتبار</th><th>وضعیت</th><th>ساب</th><th>عملیات</th></tr></thead>
+              <tbody id="tbl-users"><tr><td colspan="7"><div class="empty-state"><span class="icon">◆</span><p>در حال بارگذاری...</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== USERS ===== -->
+      <div id="tab-users" class="tab-content hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◈</span> مدیریت کاربران</div>
+            <button class="btn btn-primary btn-sm" onclick="openCreateUser()">✦ جدید</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>نام</th><th>پروتکل</th><th>مصرف</th><th>اعتبار</th><th>وضعیت</th><th>ساب</th><th>عملیات</th></tr></thead>
+              <tbody id="tbl-users2"><tr><td colspan="7"><div class="empty-state"><span class="icon">◆</span><p>در حال بارگذاری...</p></div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SPIDER IP ===== -->
+      <div id="tab-spider-ip" class="tab-content hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◇</span> اسکنر IP</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>تعداد</label><input type="number" id="si-count" value="10" min="1" max="50"></div>
+            <div class="form-group"><label>هدف</label><select id="si-op"><option value="all">همه</option><option value="mci">همراه اول</option><option value="mtn">ایرانسل</option><option value="ict">مخابرات</option></select></div>
+          </div>
+          <div id="si-prog" style="display:none;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span id="si-stat">آماده...</span><span id="si-cnt">۰/۰</span></div>
+            <div class="progress-track"><div class="progress-fill" id="si-bar" style="width:0%"></div></div>
+          </div>
+          <button class="btn btn-primary" onclick="runSpiderIP()" style="width:100%">✦ شروع اسکن</button>
+          <div id="si-list" style="margin-top:14px"></div>
+          <button class="btn btn-ghost btn-sm" onclick="copyAllIPs()" style="margin-top:8px;width:100%">⌘ کپی همه IPها</button>
+          
+          <div style="margin-top:16px;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="toggle-btn active" onclick="setCfgTab('vless',this)">VLESS</button>
+            <button class="toggle-btn" onclick="setCfgTab('vmess',this)">VMess</button>
+            <button class="toggle-btn" onclick="setCfgTab('clash',this)">Clash</button>
+            <button class="toggle-btn" onclick="setCfgTab('reality',this)">Reality</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>UUID</label><div style="display:flex;gap:6px"><input type="text" id="si-uuid" value="00000000-0000-0000-0000-000000000000"><button class="btn btn-ghost btn-sm" onclick="genUUID('si-uuid')" style="padding:8px 12px;">🎲</button></div></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>SNI</label><input type="text" id="si-sni" value="cloudflare.com"></div>
+            <div class="form-group"><label>Path</label><input type="text" id="si-path" value="/"></div>
+          </div>
+          <button class="btn btn-primary" onclick="buildFromIPs()" style="width:100%;margin-top:4px;">⚡ ساخت کانفیگ</button>
+          <div class="code-block" id="si-cfg-out" style="display:none;margin-top:12px"></div>
+          <button class="btn btn-ghost btn-sm" onclick="copyCfg()" style="margin-top:8px;width:100%">⌘ کپی خروجی</button>
+        </div>
+      </div>
+
+      <!-- ===== TOOLS ===== -->
+      <div id="tab-tools" class="tab-content hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◊</span> تنظیمات اتصال</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+              <span style="color:var(--txt2);font-size:13px;">حالت WebSocket</span>
+              <div class="toggle-group">
+                <button class="toggle-btn" id="tws-on" onclick="toggleMode('websocket',true)">فعال</button>
+                <button class="toggle-btn" id="tws-off" onclick="toggleMode('websocket',false)">غیرفعال</button>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+              <span style="color:var(--txt2);font-size:13px;">حالت XHTTP</span>
+              <div class="toggle-group">
+                <button class="toggle-btn" id="txh-on" onclick="toggleMode('xhttp',true)">فعال</button>
+                <button class="toggle-btn" id="txh-off" onclick="toggleMode('xhttp',false)">غیرفعال</button>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+              <span style="color:var(--txt2);font-size:13px;">پروتکل پیش‌فرض</span>
+              <select id="ts-defconn" onchange="saveDefaultConnection()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--txt);padding:6px 12px;font-family:var(--font-arabic);font-size:12px;">
+                <option value="ws">WebSocket</option>
+                <option value="xhttp">XHTTP</option>
+                <option value="tcp">TCP</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◊</span> مدیریت دامنه</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:3">
+              <label>دامنه اصلی</label>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="rs-domain" placeholder="example.com" list="dm-list" style="flex:1">
+                <datalist id="dm-list"></datalist>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <button class="btn btn-primary" onclick="saveDomain()">💾 ذخیره</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearDomainHistory()">🗑️ پاک کردن تاریخچه</button>
+          </div>
+          <div id="dm-history" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◊</span> تنظیمات Reality</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>پورت داخلی</label><input type="number" id="rs-port" value="1234"></div>
+            <div class="form-group"><label>آدرس مقصد</label><input type="text" id="rs-dest" value="google.com:443"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>SNI پیش‌فرض</label><input type="text" id="rs-sni"></div>
+            <div class="form-group"><label>Public Key</label><div style="display:flex;gap:6px;"><input type="text" id="rs-pbk" style="flex:1"><button class="btn btn-ghost btn-sm" onclick="generateRealityKeys()">🔑</button></div></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Short ID</label><input type="text" id="rs-sid" value="6ba85179e30d4fc2"></div>
+            <div class="form-group"><label>SpiderX</label><input type="text" id="rs-spx" value="/"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>External Domain</label><input type="text" id="rs-ext-domain" placeholder="your-domain.com"></div>
+            <div class="form-group"><label>External Port</label><input type="number" id="rs-ext-port" value="443"></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveRealitySettings()" style="width:100%;margin-top:8px;">💾 ذخیره تنظیمات Reality</button>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS ===== -->
+      <div id="tab-settings" class="tab-content hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="gold">◈</span> تنظیمات پنل</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--txt2);font-size:13px;">حالت نمایش</span>
+              <div class="toggle-group">
+                <button class="toggle-btn" id="theme-dark" onclick="setTheme('dark')">🌙 تاریک</button>
+                <button class="toggle-btn" id="theme-light" onclick="setTheme('light')">☀️ روشن</button>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--txt2);font-size:13px;">شفافیت پس‌زمینه</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <input type="range" id="bg-opacity" min="0" max="20" value="6" oninput="updateBgOpacity(this.value)" style="width:120px;">
+                <span id="bg-opacity-val" style="font-size:12px;font-weight:600;min-width:30px;color:var(--txt);">6%</span>
+              </div>
+            </div>
+            <div style="padding:6px 0;border-bottom:1px solid var(--border);">
+              <div class="form-group" style="margin-bottom:8px;"><label>رمز جدید</label><input type="password" id="set-new"></div>
+              <div class="form-group"><label>رمز فعلی</label><input type="password" id="set-old"></div>
+              <button class="btn btn-primary" onclick="changePassword()">🔑 تغییر رمز</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--txt2);font-size:13px;">نسخه</span>
+              <span style="color:var(--txt);font-size:13px;font-weight:600;">NEXUS v1.0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="color:var(--txt2);font-size:13px;">پروتکل‌ها</span>
+              <span style="color:var(--txt);font-size:13px;font-weight:600;">VLESS · VMess · Trojan · Reality</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;">
+              <span style="color:var(--txt2);font-size:13px;">هویت</span>
+              <span style="color:var(--primary);font-size:13px;font-weight:600;">✦ ROYAL NEXUS ✦</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+   MODALS
+   ============================================================ -->
+<div class="modal" id="mod-user">
+  <div class="modal-content">
+    <div class="modal-title"><span class="gold">✦</span> ایجاد کاربر جدید</div>
+    <form onsubmit="submitCreateUser(event)">
+      <div class="form-group"><label>نام کاربری</label><input type="text" id="cu-name" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>حجم</label><input type="number" id="cu-vol" value="20"></div>
+        <div class="form-group"><label>واحد</label><select id="cu-vol-u"><option value="GB">GB</option><option value="MB">MB</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>اعتبار</label><input type="number" id="cu-exp" value="30"></div>
+        <div class="form-group"><label>واحد</label><select id="cu-exp-u"><option value="days">روز</option><option value="months">ماه</option></select></div>
+      </div>
+      <div class="form-group"><label>اتصال همزمان</label><input type="number" id="cu-conn" value="2"></div>
+      <div class="form-group"><label>پروتکل</label><select id="cu-proto"><option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="shadowsocks">Shadowsocks</option><option value="reality">Reality</option></select></div>
+      <div class="form-group"><label>SNI</label><input type="text" id="cu-sni"></div>
+      <div class="form-group"><label>نوع انتقال</label><select id="cu-type"><option value="ws">WebSocket</option><option value="grpc">gRPC</option><option value="tcp">TCP</option><option value="xhttp">XHTTP</option></select></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('mod-user')">انصراف</button>
+        <button type="submit" class="btn btn-primary" id="cu-submit">✦ ایجاد کاربر</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="mod-edit-user">
+  <div class="modal-content">
+    <div class="modal-title"><span class="gold">✎</span> ویرایش کاربر</div>
+    <form onsubmit="submitEditUser(event)">
+      <input type="hidden" id="eu-id">
+      <div class="form-group"><label>نام کاربری</label><input type="text" id="eu-name" required></div>
+      <div class="form-group"><label>حجم (GB - ۰=نامحدود)</label><input type="number" id="eu-vol" value="20"></div>
+      <div class="form-group"><label>روز اعتبار (۰=نامحدود)</label><input type="number" id="eu-exp" value="30"></div>
+      <div class="form-group"><label>اتصال همزمان</label><input type="number" id="eu-conn" value="2"></div>
+      <div class="form-group"><label>پروتکل</label><select id="eu-proto"><option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="reality">Reality</option></select></div>
+      <div class="form-group"><label>SNI</label><input type="text" id="eu-sni"></div>
+      <div class="form-group"><label>نوع انتقال</label><select id="eu-type"><option value="ws">WS</option><option value="grpc">gRPC</option><option value="tcp">TCP</option><option value="xhttp">XHTTP</option></select></div>
+      <div class="form-group"><label>وضعیت</label><select id="eu-status"><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></div>
+      <div class="form-group"><label><input type="checkbox" id="eu-reset"> ریست مصرف</label></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('mod-edit-user')">انصراف</button>
+        <button type="submit" class="btn btn-primary">💾 ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="mod-cfg">
+  <div class="modal-content">
+    <div class="modal-title"><span class="gold">🔗</span> کانفیگ</div>
+    <div class="code-block" id="cfg-code"></div>
+    <div id="cfg-qr-wrap" style="display:none;text-align:center;margin-bottom:12px;">
+      <img id="cfg-qr" src="" alt="QR" style="max-width:180px;border-radius:var(--radius-sm);border:2px solid var(--primary);padding:4px;background:#fff;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="copyCfg()">⌘ کپی</button>
+      <button class="btn btn-ghost" onclick="showQR()">📱 QR</button>
+    </div>
+    <button class="btn btn-ghost" onclick="closeModal('mod-cfg')" style="width:100%;margin-top:8px;">بستن</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+var ALL_U = [], pgU = 1, PS = 10, curCfg = '', siIPs = [], cfgTab = 'vless';
+function $id(id) { return document.getElementById(id); }
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fm(b) { if (!b || b < 1) return '0 B'; var u=['B','KB','MB','GB']; var i=0; while (b >= 1024 && i < u.length-1) { b/=1024; i++; } return b.toFixed(i===0?0:2) + ' ' + u[i]; }
+function fp(u,t) { return t && t > 0 ? Math.min(100, (u/t*100)) : 0; }
+function toast(m,t) { var el=$id('toast'); el.textContent=m; el.className='toast show' + (t ? ' '+t : ''); clearTimeout(el._timer); el._timer=setTimeout(function(){ el.classList.remove('show'); }, 2600); }
+function closeModal(id) { $id(id).classList.remove('show'); }
+function openModal(id) { $id(id).classList.add('show'); }
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('nexus-theme', t);
+  var d = document.getElementById('theme-dark'), l = document.getElementById('theme-light');
+  if (d) d.className = 'toggle-btn' + (t === 'dark' ? ' active' : '');
+  if (l) l.className = 'toggle-btn' + (t === 'light' ? ' active' : '');
+}
+(function() { setTheme(localStorage.getItem('nexus-theme') || 'dark'); })();
+
+function updateBgOpacity(v) {
+  var p = v / 100;
+  document.documentElement.style.setProperty('--bg-opacity', p);
+  document.getElementById('bg-opacity-val').textContent = v + '%';
+  localStorage.setItem('bg-opacity', v);
+}
+(function() { var v = localStorage.getItem('bg-opacity') || 6; document.getElementById('bg-opacity').value = v; updateBgOpacity(v); })();
+
+// ============================================================
+// API
+// ============================================================
+async function api(url, opts) {
+  opts = opts || {};
+  try {
+    var r = await fetch(url, opts);
+    if (r.status === 401) {
+      $id('login-wrap').style.display = 'flex';
+      $id('app-wrap').classList.remove('active');
+      throw new Error('unauth');
+    }
+    if (!r.ok) { var d = await r.json().catch(function(){ return {}; }); throw new Error(d.detail || 'Error '+r.status); }
+    return await r.json();
+  } catch(e) {
+    if (e.message !== 'unauth') toast(e.message, 'error');
+    throw e;
+  }
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+async function checkAuth() {
+  try { return (await fetch('/api/me').then(function(r){ return r.json(); })).authenticated; }
+  catch(e) { return false; }
+}
+async function doLogin() {
+  var btn = $id('login-btn'), pw = $id('login-pw').value, u = $id('login-user').value.trim() || 'admin';
+  btn.disabled = true; btn.innerHTML = '<span>⏳</span>';
+  var err = $id('login-err'); err.classList.remove('show');
+  try {
+    var r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw, username: u })
+    });
+    if (!r.ok) { var d = await r.json().catch(function(){ return {}; }); throw new Error(d.detail || 'رمز عبور اشتباه است'); }
+    showApp();
+  } catch(e) {
+    err.textContent = e.message; err.classList.add('show');
+    btn.disabled = false; btn.innerHTML = '<span>✦ ورود به پنل ✦</span>';
+  }
+}
+async function doLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  $id('app-wrap').classList.remove('active');
+  $id('login-wrap').style.display = 'flex';
+}
+
+// ============================================================
+// APP
+// ============================================================
+async function showApp() {
+  $id('login-wrap').style.display = 'none';
+  $id('app-wrap').classList.add('active');
+  var h = new Date().getHours(), g = '';
+  if (h < 6) g = 'شب بخیر';
+  else if (h < 12) g = 'صبح بخیر';
+  else if (h < 18) g = 'ظهر بخیر';
+  else g = 'عصر بخیر';
+  $id('grt').innerHTML = '<strong>' + g + '</strong> ◈ به ROYAL NEXUS خوش آمدید';
+  loadAll();
+  setInterval(loadStats, 30000);
+}
+async function loadAll() { loadStats(); loadUsers(); loadServerStats(); }
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.add('hidden'); });
+  var t = $id('tab-' + tab);
+  if (t) {
+    t.classList.remove('hidden');
+    if (tab === 'tools') { loadConnectionModes(); loadRealitySettings(); }
+  }
+}
+
+// ============================================================
+// STATS
+// ============================================================
+async function loadStats() {
+  try {
+    var d = await api('/stats');
+    $id('s1').textContent = d.active_users || 0;
+    $id('s1b').textContent = 'کل: ' + (d.total_users || 0);
+    $id('s2').textContent = d.total_users || 0;
+    $id('s2b').textContent = 'فعال: ' + (d.active_users || 0);
+    $id('s3').textContent = (d.traffic_usage_gb || 0).toFixed(2);
+    $id('s3b').textContent = 'اتصالات: ' + (d.active_connections || 0);
+    $id('s4').textContent = d.uptime || '--';
+    $id('s4b').textContent = 'وضعیت: ' + (d.server_status || 'سالم');
+  } catch(e) {}
+}
+
+// ============================================================
+// USERS
+// ============================================================
+async function loadUsers() {
+  try { var d = await api('/api/users'); ALL_U = d.users || []; renderUsers(); }
+  catch(e) {}
+}
+function renderUsers() {
+  var start = (pgU-1)*PS, page = ALL_U.slice(start, start+PS);
+  function renderTable(tb) {
+    if (!tb) return;
+    if (!page.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="icon">◆</span><p>هیچ کاربری وجود ندارد</p></div></td></tr>'; return; }
+    tb.innerHTML = page.map(function(u) {
+      var used = u.traffic_used_bytes || 0, limit = u.traffic_limit_bytes || 0, pct = fp(used, limit);
+      var st = u.status || 'active';
+      var sc = st === 'active' ? 'badge-active' : st === 'expired' ? 'badge-expired' : 'badge-inactive';
+      var stxt = st === 'active' ? 'فعال' : st === 'expired' ? 'منقضی' : 'غیرفعال';
+      var days = u.expire_at ? Math.ceil((new Date(u.expire_at) - new Date()) / 86400000) : null;
+      var dTxt = days !== null ? (days > 0 ? days + ' روز' : 'منقضی') : '∞';
+      var protoLabel = (u.protocol || 'VLESS').toUpperCase();
+      return '<tr><td><strong>' + esc(u.username) + '</strong></td>' +
+        '<td><span class="badge badge-protocol">' + protoLabel + '</span></td>' +
+        '<td><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div><div class="progress-text"><span>'+fm(used)+'</span><span>'+(limit>0?fm(limit):'∞')+'</span></div></td>' +
+        '<td>'+dTxt+'</td><td><span class="badge '+sc+'">'+stxt+'</span></td>' +
+        '<td><a href="/sub/'+u.username+'" target="_blank" class="btn btn-ghost btn-sm">📄</a> <button class="btn btn-ghost btn-sm" onclick="copySubLink(\''+u.username+'\')">⌘</button></td>' +
+        '<td><div style="display:flex;gap:4px;flex-wrap:wrap;">' +
+          '<button class="btn btn-ghost btn-sm btn-icon" onclick="editUser(\''+u.user_id+'\')">✎</button>' +
+          '<button class="btn btn-ghost btn-sm btn-icon" onclick="viewCfg(\''+u.user_id+'\')">◈</button>' +
+          '<button class="btn btn-success btn-sm btn-icon" onclick="toggleU(\''+u.user_id+'\')">⟳</button>' +
+          '<button class="btn btn-danger btn-sm btn-icon" onclick="deleteU(\''+u.user_id+'\')">✕</button>' +
+        '</div></td></tr>';
+    }).join('');
+  }
+  renderTable(document.getElementById('tbl-users'));
+  renderTable(document.getElementById('tbl-users2'));
+}
+function openCreateUser() { $id('mod-user').classList.add('show'); $id('cu-name').focus(); }
+async function submitCreateUser(e) {
+  e.preventDefault();
+  var btn = $id('cu-submit'); btn.disabled = true; btn.textContent = '⏳';
+  var v = parseFloat($id('cu-vol').value)||0, vu = $id('cu-vol-u').value;
+  var ex = parseInt($id('cu-exp').value)||0, eu = $id('cu-exp-u').value;
+  try {
+    var r = await api('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: $id('cu-name').value,
+        traffic_limit_gb: vu === 'GB' ? v : v/1024,
+        expire_days: eu === 'months' ? ex*30 : ex,
+        concurrent_connections: parseInt($id('cu-conn').value)||2,
+        protocol: $id('cu-proto').value,
+        sni: $id('cu-sni').value,
+        transport_type: $id('cu-type').value
+      })
+    });
+    toast('کاربر ' + r.username + ' ایجاد شد', 'success');
+    closeModal('mod-user'); loadAll();
+  } catch(e) {}
+  btn.disabled = false; btn.textContent = '✦ ایجاد کاربر';
+}
+function editUser(uid) {
+  var u = ALL_U.find(function(x){ return x.user_id === uid; });
+  if (!u) return;
+  $id('eu-id').value = uid;
+  $id('eu-name').value = u.username || '';
+  $id('eu-vol').value = (u.traffic_limit_bytes ? u.traffic_limit_bytes/1073741824 : 0).toFixed(0);
+  $id('eu-exp').value = u.expire_at ? Math.ceil((new Date(u.expire_at) - new Date())/86400000) : 0;
+  $id('eu-proto').value = u.protocol || 'vless';
+  $id('eu-sni').value = u.sni || '';
+  $id('eu-type').value = u.transport_type || 'ws';
+  $id('eu-status').value = u.status || 'active';
+  $id('eu-conn').value = u.concurrent_connections || 2;
+  openModal('mod-edit-user');
+}
+async function submitEditUser(e) {
+  e.preventDefault();
+  var uid = $id('eu-id').value, v = parseFloat($id('eu-vol').value)||0, ex = parseInt($id('eu-exp').value)||0;
+  try {
+    await api('/api/users/' + uid, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: $id('eu-name').value,
+        traffic_limit_gb: v,
+        expire_days: ex,
+        protocol: $id('eu-proto').value,
+        sni: $id('eu-sni').value,
+        transport_type: $id('eu-type').value,
+        status: $id('eu-status').value,
+        concurrent_connections: parseInt($id('eu-conn').value)||2,
+        reset_traffic: $id('eu-reset').checked
+      })
+    });
+    toast('کاربر بروزرسانی شد', 'success');
+    closeModal('mod-edit-user'); loadAll();
+  } catch(e) {}
+}
+async function toggleU(uid) {
+  try { await api('/api/users/' + uid + '/toggle', { method: 'PATCH' }); toast('تغییر وضعیت', 'success'); loadAll(); }
+  catch(e) {}
+}
+async function deleteU(uid) {
+  if (!confirm('حذف کاربر؟')) return;
+  try { await api('/api/users/' + uid, { method: 'DELETE' }); toast('حذف شد', 'success'); loadAll(); }
+  catch(e) {}
+}
+async function viewCfg(uid) {
+  try { var d = await api('/api/users/' + uid + '/config'); curCfg = d.config || ''; $id('cfg-code').textContent = curCfg; openModal('mod-cfg'); }
+  catch(e) {}
+}
+function showQR() {
+  if (curCfg) {
+    $id('cfg-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(curCfg);
+    $id('cfg-qr-wrap').style.display = 'block';
+  } else toast('اول کانفیگ رو ببین', 'error');
+}
+function copyCfg() {
+  if (curCfg) navigator.clipboard.writeText(curCfg).then(function(){ toast('کپی شد', 'success'); }).catch(function(){ toast('خطا', 'error'); });
+}
+
+// ============================================================
+// SPIDER IP
+// ============================================================
+var networkDB = {
+  all: [[172,64,0,0,13],[104,16,0,0,12],[162,159,0,0,16],[108,162,192,0,18]],
+  mci: [[104,16,24,0,14],[172,67,10,0,15],[162,159,36,0,16]],
+  mtn: [[108,162,192,0,18],[104,18,45,0,14],[172,64,50,0,14]],
+  ict: [[104,16,0,0,12],[162,159,0,0,16]]
+};
+function makeIP(type) {
+  var rl = networkDB[type] || networkDB.all;
+  var r = rl[Math.floor(Math.random() * rl.length)];
+  var s = [r[0], r[1], r[2], r[3]];
+  if (r[4] === 12) { s[1] += Math.floor(Math.random()*16); s[2] = Math.floor(Math.random()*256); }
+  else if (r[4] === 13) { s[1] += Math.floor(Math.random()*8); s[2] = Math.floor(Math.random()*256); }
+  else if (r[4] === 14) s[2] += Math.floor(Math.random()*4);
+  else if (r[4] === 15) s[2] += Math.floor(Math.random()*2);
+  else if (r[4] === 16) s[2] = Math.floor(Math.random()*256);
+  s[3] = Math.floor(Math.random()*253) + 2;
+  return s.join('.');
+}
+function pingIP(ip) {
+  return new Promise(function(res) {
+    var t0 = Date.now(), img = new Image(), tid = setTimeout(function(){ img.src = ''; res(null); }, 1200);
+    img.onload = img.onerror = function() { clearTimeout(tid); var p = Date.now() - t0; res(p < 1000 ? { ping: p } : null); };
+    img.src = 'https://' + ip + '/favicon.ico?t=' + Math.random();
+  });
+}
+async function runSpiderIP() {
+  var need = parseInt($id('si-count').value) || 10, op = $id('si-op').value;
+  $id('si-prog').style.display = 'block';
+  $id('si-list').innerHTML = '';
+  siIPs = [];
+  var l = 0;
+  while (siIPs.length < need && l < need * 80) {
+    l++;
+    var ip = makeIP(op);
+    $id('si-stat').textContent = 'اسکن ' + ip + '...';
+    var r = await pingIP(ip);
+    if (r !== null) {
+      siIPs.push({ ip: ip, ping: r.ping });
+      $id('si-bar').style.width = Math.floor(siIPs.length / need * 100) + '%';
+      $id('si-cnt').textContent = siIPs.length + ' / ' + need;
+    }
+  }
+  siIPs.sort(function(a,b){ return a.ping - b.ping; });
+  $id('si-prog').style.display = 'none';
+  $id('si-list').innerHTML = siIPs.map(function(item,i) {
+    var cls = item.ping < 100 ? 'fast' : item.ping < 300 ? 'mid' : 'slow';
+    var color = item.ping < 100 ? '#4ADE80' : item.ping < 300 ? '#F59E0B' : '#E84A4A';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:4px;border:1px solid var(--border);">' +
+      '<span style="font-family:monospace;font-size:13px;direction:ltr;color:var(--primary);">' + item.ip + '<small style="color:var(--txt2);">:443</small></span>' +
+      '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;font-weight:600;color:'+color+';">' + item.ping + ' ms</span>' +
+      '<button class="btn btn-ghost btn-sm btn-icon" onclick="copyIP(\''+item.ip+'\')">⌘</button></div></div>';
+  }).join('');
+}
+function copyAllIPs() {
+  navigator.clipboard.writeText(siIPs.map(function(i){ return i.ip + ':443'; }).join('\n'))
+    .then(function(){ toast('کپی شد', 'success'); });
+}
+function copyIP(ip) {
+  navigator.clipboard.writeText(ip + ':443').then(function(){ toast('کپی شد', 'success'); });
+}
+function genUUID(id) {
+  $id(id).value = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0; return (c === 'x' ? r : r & 0x3 | 0x8).toString(16);
+  });
+}
+function setCfgTab(tab, el) {
+  cfgTab = tab;
+  document.querySelectorAll('.toggle-btn').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+}
+function buildFromIPs() {
+  if (!siIPs.length) { toast('اول اسکن کن', 'error'); return; }
+  var uuid = $id('si-uuid').value, sni = $id('si-sni').value, path = $id('si-path').value, out = '', el = $id('si-cfg-out');
+  if (cfgTab === 'vless') {
+    out = siIPs.map(function(item,i) {
+      return 'vless://' + uuid + '@' + item.ip + ':443?encryption=none&security=tls&sni=' + sni + '&type=ws&path=' + encodeURIComponent(path) + '#NEXUS-' + (i+1);
+    }).join('\n');
+  } else if (cfgTab === 'vmess') {
+    out = siIPs.map(function(item,i) {
+      var o = { v:'2', ps:'NEXUS-'+(i+1), add:item.ip, port:'443', id:uuid, aid:'0', net:'ws', type:'none', host:sni, path:path, tls:'tls', sni:sni };
+      return 'vmess://' + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+    }).join('\n');
+  } else if (cfgTab === 'clash') {
+    var pl = siIPs.map(function(item,i) {
+      return '  - name: NEXUS-' + (i+1) + '\n    type: vless\n    server: ' + item.ip + '\n    port: 443\n    uuid: ' + uuid + '\n    tls: true\n    servername: ' + sni + '\n    network: ws\n    ws-opts:\n      path: ' + path;
+    });
+    var ns = siIPs.map(function(item,i){ return 'NEXUS-' + (i+1); });
+    out = 'proxies:\n' + pl.join('\n') + '\n\nproxy-groups:\n  - name: AUTO\n    type: url-test\n    proxies:\n      - ' + ns.join('\n      - ') + '\n    url: http://www.gstatic.com/generate_204\n    interval: 300\n\nrules:\n  - MATCH,AUTO';
+  } else if (cfgTab === 'reality') {
+    out = siIPs.map(function(item,i) {
+      return 'vless://' + uuid + '@' + item.ip + ':443?encryption=none&security=reality&type=tcp&sni=' + sni + '&fp=chrome&alpn=h2,http/1.1&pbk=&sid=&spx=%2F#NEXUS-R-' + (i+1);
+    }).join('\n');
+  }
+  el.style.display = 'block';
+  el.textContent = out;
+  curCfg = out;
+}
+
+// ============================================================
+// REALITY
+// ============================================================
+async function loadRealitySettings() {
+  try {
+    var d = await api('/api/tools/reality-settings');
+    $id('rs-port').value = d.port || 1234;
+    $id('rs-dest').value = d.dest || 'google.com:443';
+    $id('rs-sni').value = d.sni || '';
+    $id('rs-pbk').value = d.public_key || '';
+    $id('rs-sid').value = d.short_id || '6ba85179e30d4fc2';
+    $id('rs-spx').value = d.spiderx || '/';
+    $id('rs-ext-domain').value = d.external_domain || '';
+    $id('rs-ext-port').value = d.external_port || 443;
+    $id('rs-domain').value = d.domain || '';
+    renderDomainHistory(d.domain_history || []);
+  } catch(e) {}
+}
+async function saveRealitySettings() {
+  var ep = parseInt($id('rs-ext-port').value); if (isNaN(ep) || ep < 1) ep = 443;
+  var body = {
+    port: parseInt($id('rs-port').value) || 1234,
+    dest: $id('rs-dest').value,
+    sni: $id('rs-sni').value,
+    public_key: $id('rs-pbk').value,
+    short_id: $id('rs-sid').value,
+    spiderx: $id('rs-spx').value,
+    external_domain: $id('rs-ext-domain').value,
+    external_port: ep,
+    domain: $id('rs-domain').value
+  };
+  try {
+    await api('/api/tools/reality-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    toast('تنظیمات Reality ذخیره شد', 'success');
+    loadRealitySettings();
+  } catch(e) { toast('خطا در ذخیره: ' + e.message, 'error'); }
+}
+
+// ============================================================
+// DOMAIN
+// ============================================================
+var domainHistory = [];
+function renderDomainHistory(list) {
+  domainHistory = list || [];
+  var dl = $id('dm-list');
+  dl.innerHTML = domainHistory.map(function(d){ return '<option value="'+esc(d)+'">'; }).join('');
+  var dh = $id('dm-history');
+  if (!domainHistory.length) {
+    dh.innerHTML = '<span style="font-size:11px;color:var(--txt2);">هنوز دامنه‌ای ثبت نشده</span>';
+    return;
+  }
+  dh.innerHTML = domainHistory.map(function(d) {
+    return '<button class="btn btn-ghost btn-sm" onclick="$id(\'rs-domain\').value=\''+esc(d)+'\'" style="font-size:11px;">'+esc(d)+'</button>';
+  }).join('');
+}
+async function saveDomain() {
+  var d = $id('rs-domain').value.trim();
+  if (!d) { toast('دامنه را وارد کنید', 'error'); return; }
+  try {
+    await api('/api/tools/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ domain: d }) });
+    toast('دامنه ذخیره شد', 'success');
+    loadRealitySettings();
+  } catch(e) {}
+}
+async function clearDomainHistory() {
+  if (!confirm('پاک کردن تاریخچه دامنه‌ها؟')) return;
+  try {
+    await api('/api/tools/reality-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ domain: '__CLEAR__' }) });
+    toast('تاریخچه پاک شد', 'success');
+    loadRealitySettings();
+  } catch(e) {}
+}
+
+// ============================================================
+// CONNECTION MODES
+// ============================================================
+async function loadConnectionModes() {
+  try {
+    var d = await api('/api/tools/settings');
+    updateModeBtn('tws', d.websocket_mode);
+    updateModeBtn('txh', d.xhttp_mode);
+    $id('ts-defconn').value = d.default_connection_mode || 'ws';
+  } catch(e) {}
+}
+function updateModeBtn(prefix, on) {
+  var elOn = $id(prefix + '-on'), elOff = $id(prefix + '-off');
+  if (on) {
+    elOn.className = 'toggle-btn active';
+    elOff.className = 'toggle-btn';
+  } else {
+    elOn.className = 'toggle-btn';
+    elOff.className = 'toggle-btn active';
+  }
+}
+function toggleMode(mode, val) {
+  updateModeBtn(mode === 'websocket' ? 'tws' : 'txh', val);
+  var body = {};
+  body[mode === 'websocket' ? 'websocket_mode' : 'xhttp_mode'] = val;
+  api('/api/tools/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(function(){});
+}
+async function saveDefaultConnection() {
+  var v = $id('ts-defconn').value;
+  try {
+    await api('/api/tools/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ default_connection_mode: v }) });
+    toast('پروتکل پیش‌فرض: ' + v.toUpperCase(), 'success');
+  } catch(e) {}
+}
+
+// ============================================================
+// KEY GENERATION
+// ============================================================
+async function generateRealityKeys() {
+  try {
+    var d = await api('/api/tools/generate-reality-keys', { method: 'POST' });
+    $id('rs-pbk').value = d.public_key;
+    toast('کلید Public تولید شد', 'success');
+    if (d.note) toast(d.note, 'error');
+  } catch(e) { toast('خطا در تولید کلید', 'error'); }
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+async function changePassword() {
+  var o = $id('set-old').value, n = $id('set-new').value;
+  if (!o || !n) { toast('همه فیلدها پر شود', 'error'); return; }
+  if (n.length < 4) { toast('رمز حداقل ۴ کاراکتر', 'error'); return; }
+  try {
+    await api('/api/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_password: o, new_password: n })
+    });
+    toast('رمز تغییر کرد', 'success');
+    $id('set-old').value = ''; $id('set-new').value = '';
+  } catch(e) {}
+}
+
+// ============================================================
+// SERVER STATS
+// ============================================================
+async function loadServerStats() {
+  try {
+    var d = await api('/api/server/stats').catch(function(){ return null; });
+    if (!d) return;
+    $id('srv-cpu').textContent = d.cpu_percent + '%';
+    $id('srv-cpu-bar').style.width = d.cpu_percent + '%';
+    $id('srv-ram').textContent = d.ram_percent + '%';
+    $id('srv-ram-bar').style.width = d.ram_percent + '%';
+    $id('srv-disk').textContent = d.disk_percent + '%';
+    $id('srv-disk-bar').style.width = d.disk_percent + '%';
+    $id('srv-net').textContent = d.network_mbps + ' MB/s';
+    $id('srv-net-bar').style.width = Math.min(d.network_mbps * 2, 100) + '%';
+    $id('srv-sent').textContent = d.net_sent_mb ? d.net_sent_mb.toFixed(1) + ' MB' : '--';
+    $id('srv-recv').textContent = d.net_recv_mb ? d.net_recv_mb.toFixed(1) + ' MB' : '--';
+    $id('srv-up').textContent = d.uptime || '--';
+    $id('srv-conn').textContent = d.active_connections || '0';
+  } catch(e) {}
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function openSidebar() { $id("sidebar").classList.add("open"); }
+function closeSidebar() { $id("sidebar").classList.remove("open"); }
+function toggleSidebar() { $id("sidebar").classList.contains("open") ? closeSidebar() : openSidebar(); }
+
+(function init() {
+  // Close sidebar on outside click
+  document.addEventListener('click', function(e) {
+    var sb = $id('sidebar');
+    if (sb.classList.contains('open')) {
+      var isSidebar = sb.contains(e.target);
+      var isToggle = e.target.closest('.sidebar-tog') || e.target.closest('[onclick*="toggleSidebar"]');
+      if (!isSidebar && !isToggle) closeSidebar();
+    }
+  });
+  
+  checkAuth().then(function(authed) {
+    if (authed) { showApp(); return; }
+    $id('login-wrap').style.display = 'flex';
+    $id('login-pw').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+  });
+})();
+</script>
+</body>
+</html>

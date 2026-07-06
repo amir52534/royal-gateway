@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Royal Nexus · اشتراک</title>
+<style>
+/* ============================================================
+   ROYAL NEXUS — صفحه اشتراک (طراحی مینیمال و مدرن)
+   ============================================================ */
+
+:root {
+  --royal-gold: #D4A02B;
+  --royal-gold-light: #F0D060;
+  --royal-gold-dark: #A67C1E;
+  --royal-gold-glow: rgba(212, 160, 43, 0.08);
+  
+  --bg: #0A0806;
+  --bg2: #14100E;
+  --bg3: rgba(212, 160, 43, 0.04);
+  --bg4: rgba(212, 160, 43, 0.02);
+  --bg5: rgba(212, 160, 43, 0.06);
+  --txt: #EDE8E0;
+  --txt2: rgba(212, 160, 43, 0.35);
+  --txt3: rgba(237, 232, 224, 0.12);
+  --border: rgba(212, 160, 43, 0.06);
+  --border-light: rgba(212, 160, 43, 0.1);
+  
+  --green: #7BCFA8;
+  --red: #E84A4A;
+  --gold: var(--royal-gold);
+  --gold-light: var(--royal-gold-light);
+  
+  --radius: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-hover: 0 12px 48px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 60px rgba(212,160,43,0.02);
+  
+  --gradient-gold: linear-gradient(135deg, #D4A02B, #F0D060);
+  --gradient-subtle: linear-gradient(135deg, rgba(212,160,43,0.04), rgba(212,160,43,0.02));
+}
+
+[data-theme="light"] {
+  --bg: #F5EDE0;
+  --bg2: #FFFFFF;
+  --bg3: rgba(212, 160, 43, 0.04);
+  --bg4: rgba(212, 160, 43, 0.02);
+  --txt: #1A1618;
+  --txt2: rgba(106, 80, 20, 0.35);
+  --txt3: rgba(26, 22, 24, 0.12);
+  --border: rgba(212, 160, 43, 0.08);
+  --border-light: rgba(212, 160, 43, 0.12);
+  --shadow: 0 8px 32px rgba(0,0,0,0.04);
+  --shadow-hover: 0 12px 48px rgba(0,0,0,0.06);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.3s, color 0.3s;
+  padding: 20px 0;
+}
+
+/* ============================================================
+   BACKGROUND
+   ============================================================ */
+.bg-art {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bg-art .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+.bg-art .blob:nth-child(1) {
+  width: 350px;
+  height: 350px;
+  background: var(--royal-gold);
+  top: -150px;
+  right: -100px;
+  opacity: 0.03;
+}
+.bg-art .blob:nth-child(2) {
+  width: 250px;
+  height: 250px;
+  background: var(--royal-gold-light);
+  bottom: -80px;
+  left: -60px;
+  opacity: 0.02;
+}
+
+/* ============================================================
+   CONTAINER
+   ============================================================ */
+.container {
+  max-width: 480px;
+  width: 100%;
+  padding: 0 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   CARD
+   ============================================================ */
+.card {
+  background: var(--bg2);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  margin-bottom: 14px;
+}
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: var(--border-light);
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+  padding: 24px 20px 18px;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--gradient-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0A0806;
+  margin: 0 auto 10px;
+  box-shadow: 0 4px 20px rgba(212, 160, 43, 0.08);
+  transition: transform 0.3s;
+}
+.header-avatar:hover {
+  transform: scale(1.04);
+}
+
+.header-name {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--txt);
+}
+.header-name span {
+  color: var(--royal-gold);
+}
+
+.header-sub {
+  font-size: 10px;
+  color: var(--txt2);
+  letter-spacing: 3px;
+  margin-top: 2px;
+  font-weight: 300;
+}
+
+/* ============================================================
+   STATUS ROW
+   ============================================================ */
+.status-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 20px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--txt2);
+}
+.status-item .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-item .dot.active {
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(123, 207, 168, 0.15);
+}
+.status-item .dot.inactive {
+  background: var(--red);
+  box-shadow: 0 0 10px rgba(232, 74, 74, 0.12);
+}
+.status-item .label {
+  color: var(--txt3);
+  margin-right: 2px;
+}
+
+/* ============================================================
+   BODY
+   ============================================================ */
+.body {
+  padding: 18px 20px 20px;
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--bg3);
+  border-radius: var(--radius);
+  padding: 12px 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.stat:hover {
+  border-color: var(--border-light);
+}
+.stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--royal-gold);
+  font-feature-settings: "tnum";
+}
+.stat-label {
+  font-size: 8px;
+  color: var(--txt2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+.stat.green .stat-value { color: var(--green); }
+.stat.warm .stat-value { color: var(--royal-gold-light); }
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+.progress-wrap {
+  margin-bottom: 16px;
+}
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.progress-header .label { color: var(--txt2); }
+.progress-header .pct { color: var(--royal-gold); font-weight: 600; }
+.progress-track {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-track .fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--gradient-gold);
+  transition: width 0.6s ease;
+}
+.progress-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--txt3);
+  margin-top: 3px;
+}
+.progress-detail .used { color: var(--txt2); }
+
+/* ============================================================
+   CONFIG
+   ============================================================ */
+.config-box {
+  background: var(--bg3);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.config-box:hover {
+  border-color: var(--border-light);
+}
+.config-label {
+  font-size: 8px;
+  color: var(--txt2);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.config-value {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 9px;
+  direction: ltr;
+  text-align: left;
+  word-break: break-all;
+  color: var(--royal-gold-light);
+  line-height: 1.8;
+  max-height: 70px;
+  overflow-y: auto;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-group {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+  flex: 1;
+  min-width: 0;
+  background: var(--bg3);
+  color: var(--txt);
+  border: 1px solid var(--border);
+}
+.btn:hover {
+  background: var(--bg4);
+  border-color: var(--border-light);
+  transform: translateY(-1px);
+}
+.btn-gold {
+  background: var(--gradient-gold);
+  color: #0A0806;
+  border: none;
+  box-shadow: 0 4px 12px rgba(212, 160, 43, 0.06);
+}
+.btn-gold:hover {
+  box-shadow: 0 8px 20px rgba(212, 160, 43, 0.1);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--royal-gold);
+}
+.btn-outline:hover {
+  background: rgba(212, 160, 43, 0.04);
+}
+.btn-import {
+  background: rgba(123, 207, 168, 0.04);
+  border: 1px solid rgba(123, 207, 168, 0.06);
+  color: var(--green);
+}
+.btn-import:hover {
+  background: rgba(123, 207, 168, 0.08);
+}
+
+/* ============================================================
+   PING
+   ============================================================ */
+.ping-section {
+  text-align: center;
+  padding: 12px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.ping-btn {
+  padding: 6px 24px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 50px;
+  color: var(--royal-gold);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: inherit;
+}
+.ping-btn:hover {
+  background: rgba(212, 160, 43, 0.04);
+  border-color: var(--royal-gold);
+}
+.ping-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ping-result {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 20px;
+}
+.ping-result.fast { color: var(--green); }
+.ping-result.medium { color: var(--royal-gold); }
+.ping-result.slow { color: var(--red); }
+
+/* ============================================================
+   APPS
+   ============================================================ */
+.apps {
+  margin-top: 2px;
+}
+.apps-title {
+  font-size: 8px;
+  color: var(--txt2);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+}
+.apps-os {
+  font-size: 8px;
+  color: var(--txt2);
+  margin: 10px 0 5px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+.apps-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.app-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--txt);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.app-item:hover {
+  border-color: var(--border-light);
+  background: var(--bg4);
+}
+.app-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.app-icon.ios { background: rgba(212, 160, 43, 0.06); color: var(--royal-gold); }
+.app-icon.android { background: rgba(123, 207, 168, 0.06); color: var(--green); }
+.app-icon.windows { background: rgba(212, 160, 43, 0.04); color: var(--royal-gold-light); }
+.app-icon.clash { background: rgba(212, 160, 43, 0.04); color: var(--royal-gold-dark); }
+.app-name { font-size: 10px; font-weight: 500; }
+.app-os-label { font-size: 7px; color: var(--txt2); }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--bg2);
+  border: 1px solid var(--border-light);
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 12px;
+  z-index: 999;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  box-shadow: var(--shadow);
+  color: var(--txt);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.gold { border-color: var(--royal-gold); color: var(--royal-gold); }
+.toast.green { border-color: var(--green); color: var(--green); }
+.toast.red { border-color: var(--red); color: var(--red); }
+
+/* ============================================================
+   LOADING
+   ============================================================ */
+.loading {
+  text-align: center;
+  padding: 50px 20px;
+}
+.loading .spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--royal-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p {
+  color: var(--txt2);
+  font-size: 11px;
+}
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+.error {
+  text-align: center;
+  padding: 40px 20px;
+}
+.error .icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 8px;
+  opacity: 0.12;
+}
+.error h2 {
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--txt);
+}
+.error h2 strong {
+  color: var(--royal-gold);
+  font-weight: 600;
+}
+.error p {
+  color: var(--txt2);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.error .hint {
+  font-size: 9px;
+  color: var(--txt3);
+  margin-top: 10px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  text-align: center;
+  padding: 10px;
+  font-size: 8px;
+  color: var(--txt3);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.footer a {
+  color: var(--royal-gold);
+  text-decoration: none;
+  font-weight: 600;
+}
+.footer a:hover { text-decoration: underline; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 480px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .apps-grid { grid-template-columns: 1fr; }
+  .header { padding: 18px 14px 14px; }
+  .body { padding: 14px; }
+  .status-row { gap: 12px; flex-wrap: wrap; }
+  .btn { font-size: 10px; padding: 6px 10px; }
+  .container { padding: 0 10px; }
+  .header-name { font-size: 16px; }
+  .header-avatar { width: 50px; height: 50px; font-size: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+   BACKGROUND
+   ============================================================ -->
+<div class="bg-art">
+  <div class="blob"></div>
+  <div class="blob"></div>
+</div>
+
+<!-- ============================================================
+   CONTAINER
+   ============================================================ -->
+<div class="container" id="app">
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری...</p>
+  </div>
+</div>
+
+<!-- ============================================================
+   TOAST
+   ============================================================ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================================
+   FOOTER
+   ============================================================ -->
+<div class="footer">
+  <span>◆</span> NEXUS · <a href="/royal" target="_blank">مدیریت پنل</a> <span>◆</span>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+var uname = window.location.pathname.split('/').pop();
+document.title = 'NEXUS · ' + uname;
+
+var _cfg = '', _subUrl = '', _host = '', _data = null;
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmt(b) {
+  if (!b || b < 1) return '0 B';
+  var u = ['B', 'KB', 'MB', 'GB'];
+  var i = 0;
+  while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+  return b.toFixed(i === 0 ? 0 : 1) + ' ' + u[i];
+}
+
+function toast(msg, cls) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (cls ? ' ' + cls : '');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
+
+// ============================================================
+// LOAD
+// ============================================================
+async function load() {
+  try {
+    var r = await fetch('/api/sub/' + uname);
+    if (!r.ok) throw new Error(r.status === 404 ? 'کاربر یافت نشد' : 'خطای سرور');
+    _data = await r.json();
+    _cfg = _data.config || _data.vless_link || '';
+    _host = window.location.origin;
+    _subUrl = _host + '/sub-sync/sub/' + uname;
+    render(_data);
+  } catch(e) {
+    document.getElementById('app').innerHTML = 
+      '<div class="error">' +
+        '<span class="icon">✦</span>' +
+        '<h2><strong>' + uname + '</strong></h2>' +
+        '<p>' + e.message + '</p>' +
+        '<div class="hint">کاربر در پنل NEXUS وجود ندارد</div>' +
+      '</div>';
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(d) {
+  var used = d.traffic_used_bytes || 0;
+  var limit = d.traffic_limit_bytes || 0;
+  var pct = limit > 0 ? Math.min(100, used / limit * 100) : 0;
+  var days = d.expire_days;
+  var daysTxt = days === null ? '∞' : days + ' روز';
+  var name = d.username || uname;
+  var init = name.charAt(0).toUpperCase();
+  var proto = (d.protocol || 'vless').toUpperCase();
+  var isOk = d.status === 'active' && d.is_active !== false;
+  
+  var dotClass = isOk ? 'active' : 'inactive';
+  var statusText = isOk ? 'فعال' : 'غیرفعال';
+  var daysCls = days === null ? '' : days > 7 ? 'green' : 'warm';
+
+  var html = '';
+  html += '<div class="card">';
+  
+  // HEADER
+  html += '<div class="header">';
+  html += '<div class="header-avatar">' + init + '</div>';
+  html += '<div class="header-name">' + name + ' <span>✦</span></div>';
+  html += '<div class="header-sub">' + proto + ' · SUBSCRIPTION</div>';
+  html += '</div>';
+  
+  // STATUS
+  html += '<div class="status-row">';
+  html += '<div class="status-item"><span class="dot ' + dotClass + '"></span>' + statusText + '</div>';
+  html += '<div class="status-item"><span class="label">پروتکل</span>' + proto + '</div>';
+  html += '<div class="status-item"><span class="label">اتصال</span>' + (d.concurrent_connections || 2) + '</div>';
+  html += '</div>';
+  
+  // BODY
+  html += '<div class="body">';
+  
+  // STATS
+  html += '<div class="stats">';
+  html += '<div class="stat"><div class="stat-value">' + fmt(used) + '</div><div class="stat-label">مصرف</div></div>';
+  html += '<div class="stat"><div class="stat-value">' + (limit > 0 ? fmt(limit) : '∞') + '</div><div class="stat-label">سقف</div></div>';
+  html += '<div class="stat ' + daysCls + '"><div class="stat-value">' + daysTxt + '</div><div class="stat-label">اعتبار</div></div>';
+  html += '</div>';
+  
+  // PROGRESS
+  html += '<div class="progress-wrap">';
+  html += '<div class="progress-header"><span class="label">مصرف ترافیک</span><span class="pct">' + pct.toFixed(0) + '%</span></div>';
+  html += '<div class="progress-track"><div class="fill" style="width:' + pct + '%"></div></div>';
+  html += '<div class="progress-detail"><span class="used">' + fmt(used) + '</span><span>' + (limit > 0 ? fmt(limit) : '∞') + '</span></div>';
+  html += '</div>';
+  
+  // CONFIG
+  if (_cfg) {
+    html += '<div class="config-box">';
+    html += '<div class="config-label">✦ کانفیگ</div>';
+    html += '<div class="config-value">' + _cfg + '</div>';
+    html += '</div>';
+  }
+  
+  // BUTTONS
+  html += '<div class="btn-group">';
+  html += '<button class="btn btn-gold" onclick="copyCfg()">⌘ کپی</button>';
+  html += '<button class="btn btn-outline" onclick="copySub()">◇ لینک</button>';
+  html += '</div>';
+  html += '<div class="btn-group">';
+  html += '<button class="btn btn-import" onclick="window.open(\'v2rayng://install-sub?url=\'+encodeURIComponent(_subUrl),\'_blank\')">✦ Import</button>';
+  html += '</div>';
+  
+  // PING
+  html += '<div class="ping-section">';
+  html += '<button class="ping-btn" id="pingBtn" onclick="doPing()">◈ Ping Config</button>';
+  html += '<div class="ping-result" id="pingResult"></div>';
+  html += '</div>';
+  
+  // APPS
+  html += '<div class="apps">';
+  html += '<div class="apps-title">✦ نصب سریع ✦</div>';
+  
+  html += '<div class="apps-os">iOS</div><div class="apps-grid">';
+  html += appItem('V2Box', 'ios', 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690');
+  html += appItem('Hiddify', 'ios', 'https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532');
+  html += appItem('Streisand', 'ios', 'https://apps.apple.com/app/streisand/id6450534064');
+  html += appItem('Shadowrocket', 'ios', 'https://apps.apple.com/app/shadowrocket/id932747118');
+  html += '</div>';
+  
+  html += '<div class="apps-os">Android</div><div class="apps-grid">';
+  html += appItem('v2rayNG', 'android', 'https://github.com/2dust/v2rayNG/releases');
+  html += appItem('Clash Meta', 'clash', 'https://github.com/MetaCubeX/ClashMetaForAndroid/releases');
+  html += appItem('Sing-box', 'android', 'https://github.com/SagerNet/sing-box/releases');
+  html += appItem('Hiddify', 'android', 'https://github.com/hiddify/hiddify-next/releases');
+  html += '</div>';
+  
+  html += '<div class="apps-os">Windows</div><div class="apps-grid">';
+  html += appItem('v2rayN', 'windows', 'https://github.com/2dust/v2rayN/releases');
+  html += appItem('Clash Verge', 'clash', 'https://github.com/clash-verge-rev/clash-verge-rev/releases');
+  html += appItem('Nekoray', 'windows', 'https://github.com/MatsuriDayo/nekoray/releases');
+  html += appItem('Sing-box', 'windows', 'https://github.com/SagerNet/sing-box/releases');
+  html += '</div>';
+  
+  html += '</div>';
+  
+  html += '</div>';
+  html += '</div>';
+  
+  document.getElementById('app').innerHTML = html;
+}
+
+// ============================================================
+// APP ITEM
+// ============================================================
+function appItem(name, cls, url) {
+  var icons = {
+    'ios': '◈',
+    'android': '◆',
+    'windows': '◇',
+    'clash': '◊'
+  };
+  return '<a class="app-item" href="' + url + '" target="_blank">' +
+    '<div class="app-icon ' + cls + '">' + (icons[cls] || '·') + '</div>' +
+    '<div><div class="app-name">' + name + '</div><div class="app-os-label">' + (cls === 'ios' ? 'iOS' : cls === 'android' ? 'Android' : cls === 'windows' ? 'Windows' : '') + '</div></div>' +
+    '</a>';
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function copyCfg() {
+  if (!_cfg) return;
+  navigator.clipboard.writeText(_cfg)
+    .then(function(){ toast('✦ کانفیگ کپی شد', 'gold'); })
+    .catch(function(){ toast('خطا', 'red'); });
+}
+
+function copySub() {
+  navigator.clipboard.writeText(_subUrl)
+    .then(function(){ toast('◇ لینک کپی شد', 'gold'); })
+    .catch(function(){ toast('خطا', 'red'); });
+}
+
+// ============================================================
+// PING
+// ============================================================
+async function doPing() {
+  var btn = document.getElementById('pingBtn');
+  var res = document.getElementById('pingResult');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  res.textContent = '';
+  
+  var t0 = Date.now();
+  try {
+    var r = await fetch('/sub/' + uname + '/ping', { method: 'HEAD', cache: 'no-store' });
+    var ms = Date.now() - t0;
+    var cls = ms < 150 ? 'fast' : ms < 400 ? 'medium' : 'slow';
+    var txt = ms < 150 ? '✦ عالی' : ms < 400 ? '◇ خوب' : '⚠ کند';
+    res.textContent = txt + ' ' + ms + ' ms';
+    res.className = 'ping-result ' + cls;
+  } catch(e) {
+    res.textContent = '✕ TIMEOUT ' + (Date.now() - t0) + ' ms';
+    res.className = 'ping-result slow';
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '◈ Ping Config';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+load();
+</script>
+</body>
+</html>
